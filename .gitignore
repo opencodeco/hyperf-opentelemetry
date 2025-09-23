@@ -1,0 +1,6 @@
+*.cache
+tests/reports
+vendor/
+.idea/
+.phpunit.result.cache
+.phpunit.cache

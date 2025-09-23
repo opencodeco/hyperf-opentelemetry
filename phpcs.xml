@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<ruleset name="opencodeco/hyperf-template">
+    <rule ref="PSR1">
+        <!--    False positive from class readonly with php 8.2 -->
+        <exclude name="PSR1.Files.SideEffects.FoundWithSymbols"/>
+    </rule>
+</ruleset>

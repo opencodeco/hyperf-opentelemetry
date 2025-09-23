@@ -1,0 +1,8 @@
+services:
+
+  hyperf-opentelemetry:
+    container_name: hyperf-opentelemetry
+    image: hyperf-opentelemetry
+    build: .
+    volumes:
+      - .:/opt/www
