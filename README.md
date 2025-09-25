@@ -27,6 +27,8 @@ This library enables instrumentation of Hyperf-based applications for exporting 
 composer require opencodeco/hyperf-opentelemetry
 ```
 
+---
+
 ## ⚙️ Configuration
 1. Publish the configuration file
 ```shell
@@ -64,6 +66,8 @@ return [
 ];
 ```
 
+---
+
 ## 👨‍💻 Development
 Build the image
 ```shell
@@ -79,3 +83,8 @@ Run tests
 ```shell
 make test
 ```
+
+--- 
+
+## 🤝 Contributing
+Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
