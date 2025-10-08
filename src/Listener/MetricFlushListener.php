@@ -13,6 +13,7 @@ use Hyperf\Coroutine\Coroutine;
 use Hyperf\Event\Contract\ListenerInterface;
 use Hyperf\Framework\Event\BeforeWorkerStart;
 use OpenTelemetry\SDK\Metrics\MetricReaderInterface;
+use Hyperf\Command\Event\BeforeHandle;
 
 class MetricFlushListener implements ListenerInterface
 {
@@ -29,15 +30,12 @@ class MetricFlushListener implements ListenerInterface
     {
         return [
             BeforeWorkerStart::class,
+            BeforeHandle::class,
         ];
     }
 
     public function process(object $event): void
     {
-        if ($event->workerId === null) {
-            return;
-        }
-
         $timerInterval = (int) $this->config->get(
             'open-telemetry.exporter.metrics.flush_interval',
             5

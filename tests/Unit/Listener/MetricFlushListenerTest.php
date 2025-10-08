@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Listener;
 
+use Hyperf\Command\Event\BeforeHandle;
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Contract\ContainerInterface;
 use Hyperf\Coordinator\Constants;
 use Hyperf\Coordinator\CoordinatorManager;
 use Hyperf\Coordinator\Timer;
 use Hyperf\Framework\Event\BeforeWorkerStart;
+use Hyperf\OpenTelemetry\Listener\MetricFlushListener;
 use OpenTelemetry\SDK\Metrics\MetricReaderInterface;
 use PHPUnit\Framework\TestCase;
-use Hyperf\OpenTelemetry\Listener\MetricFlushListener;
-use stdClass;
 use Swoole\Server;
 
 /**
@@ -55,19 +55,7 @@ class MetricFlushListenerTest extends TestCase
     {
         $listener = new MetricFlushListener($this->container, $this->config);
 
-        $this->assertEquals([BeforeWorkerStart::class], $listener->listen());
-    }
-
-    public function testProcessWithNullWorkerIdShouldDoNothing(): void
-    {
-        $event = new stdClass();
-        $event->workerId = null;
-
-        $this->config->expects($this->never())->method('get');
-        $this->container->expects($this->never())->method('has');
-
-        $listener = new MetricFlushListener($this->container, $this->config);
-        $listener->process($event);
+        $this->assertEquals([BeforeWorkerStart::class, BeforeHandle::class], $listener->listen());
     }
 
     public function testProcessWithValidWorkerIdSetsUpTimer(): void
