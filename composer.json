@@ -3,7 +3,6 @@
     "description": "OpenTelemetry instrumentation for Hyperf framework",
     "type": "library",
     "license": "MIT",
-    "version": "0.1.0",
     "keywords": [
         "php",
         "hyperf",
