@@ -23,20 +23,8 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Throwable;
 
-use function Hyperf\Coroutine\defer;
-use function Hyperf\Support\make;
-
 class TraceMiddleware extends AbstractMiddleware
 {
-    public function __construct(
-        ConfigInterface $config,
-        Instrumentation $instrumentation,
-        Switcher $switcher,
-        private readonly TracerProviderInterface $tracerProvider
-    ) {
-        parent::__construct($config, $instrumentation, $switcher);
-    }
-
     /**
      * @throws Throwable
      */
@@ -67,18 +55,6 @@ class TraceMiddleware extends AbstractMiddleware
             ],
             explicitContext: $context
         );
-
-        defer(function () {
-            try {
-                $this->tracerProvider->forceFlush();
-            } catch (Throwable $exception) {
-                if (ApplicationContext::hasContainer() && ApplicationContext::getContainer()->has(StdoutLoggerInterface::class)) {
-                    ApplicationContext::getContainer()
-                        ->get(StdoutLoggerInterface::class)
-                        ->error($exception->getMessage());
-                }
-            }
-        });
 
         try {
             $response = $handler->handle($request);

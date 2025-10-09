@@ -90,8 +90,7 @@ class TraceMiddlewareTest extends TestCase
         $middleware = new TraceMiddleware(
             $config,
             $this->instrumentation,
-            $this->switcher,
-            $this->createMock(\OpenTelemetry\SDK\Trace\TracerProviderInterface::class)
+            $this->switcher
         );
 
         $result = $middleware->process($this->request, $this->handler);
@@ -108,8 +107,7 @@ class TraceMiddlewareTest extends TestCase
         $middleware = new TraceMiddleware(
             $this->config,
             $this->instrumentation,
-            $this->createMock(Switcher::class),
-            $this->createMock(\OpenTelemetry\SDK\Trace\TracerProviderInterface::class)
+            $this->createMock(Switcher::class)
         );
 
         $result = $middleware->process($this->request, $this->handler);
@@ -172,8 +170,7 @@ class TraceMiddlewareTest extends TestCase
         $middleware = new TraceMiddleware(
             $this->config,
             $this->instrumentation,
-            $this->switcher,
-            $this->createMock(\OpenTelemetry\SDK\Trace\TracerProviderInterface::class)
+            $this->switcher
         );
 
         $result = $middleware->process($this->request, $this->handler);
@@ -211,8 +208,7 @@ class TraceMiddlewareTest extends TestCase
         $middleware = new TraceMiddleware(
             $this->config,
             $this->instrumentation,
-            $this->switcher,
-            $this->createMock(\OpenTelemetry\SDK\Trace\TracerProviderInterface::class)
+            $this->switcher
         );
 
         $middleware->process($this->request, $handler);

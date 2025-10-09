@@ -35,6 +35,7 @@ class ConfigProvider
             'listeners' => [
                 Listener\DbQueryExecutedListener::class,
                 Listener\MetricFlushListener::class,
+                Listener\TraceFlushListener::class,
             ],
             'aspects' => [
                 Aspect\RedisAspect::class,
