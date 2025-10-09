@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Hyperf\OpenTelemetry\Factory;
 
-use OpenTelemetry\API\Metrics\MeterProviderInterface;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\SDK\Logs\LoggerProviderInterface;
 use OpenTelemetry\SDK\Logs\NoopLoggerProvider;
+use OpenTelemetry\SDK\Metrics\MeterProviderInterface;
 use OpenTelemetry\SDK\Metrics\NoopMeterProvider;
 use OpenTelemetry\SDK\Sdk;
 use OpenTelemetry\SDK\Trace\NoopTracerProvider;
