@@ -14,10 +14,7 @@ use OpenTelemetry\SDK\Metrics\NoopMeterProvider;
 use OpenTelemetry\SDK\Trace\NoopTracerProvider;
 use OpenTelemetry\SDK\Trace\TracerProviderInterface;
 use PHPUnit\Framework\TestCase;
-use Hyperf\OpenTelemetry\Factory\Log\LoggerProviderFactory;
-use Hyperf\OpenTelemetry\Factory\Metric\MeterProviderFactory;
 use Hyperf\OpenTelemetry\Factory\SDKBuilder;
-use Hyperf\OpenTelemetry\Factory\Trace\TracerProviderFactory;
 
 /**
  * @internal
@@ -25,12 +22,6 @@ use Hyperf\OpenTelemetry\Factory\Trace\TracerProviderFactory;
 class SDKBuilderTest extends TestCase
 {
     private ConfigInterface $config;
-
-    private LoggerProviderFactory $loggerProviderFactory;
-
-    private TracerProviderFactory $tracerProviderFactory;
-
-    private MeterProviderFactory $meterProviderFactory;
 
     private TracerProviderInterface $tracerProvider;
 
