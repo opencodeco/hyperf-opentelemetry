@@ -33,7 +33,7 @@ class MeterProviderFactory
             return new NoopMeterProvider();
         }
 
-        $reader =  new ExportingReader($this->getExporter());
+        $reader = new ExportingReader($this->getExporter());
 
         return MeterProvider::builder()
             ->setResource($this->resource)
