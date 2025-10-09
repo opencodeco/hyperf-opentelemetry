@@ -19,6 +19,8 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Throwable;
+
+use function Hyperf\Coroutine\defer;
 use function Hyperf\Support\make;
 
 class TraceMiddleware extends AbstractMiddleware
