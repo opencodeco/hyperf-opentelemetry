@@ -28,9 +28,9 @@ class TracerProviderFactory
 
     public function __invoke(ContainerInterface $container): TracerProviderInterface
     {
-        $traces = $this->config->get('open-telemetry.traces.enabled', false);
+        $tracesEnabled = $this->config->get('open-telemetry.traces.enabled', false);
 
-        if (! $traces) {
+        if (! $tracesEnabled) {
             return new NoopTracerProvider();
         }
 

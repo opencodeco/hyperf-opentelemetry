@@ -63,7 +63,7 @@
         }
     },
     "scripts": {
-        "test": "phpunit",
+        "test": "co-phpunit --prepend tests/bootstrap.php -c phpunit.xml --colors=always",
         "lint:fix": [
             "composer lint:cs:fix",
             "composer lint:update"
