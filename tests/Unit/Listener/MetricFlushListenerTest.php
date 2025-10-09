@@ -13,7 +13,6 @@ use Hyperf\Coordinator\Timer;
 use Hyperf\Framework\Event\BeforeWorkerStart;
 use Hyperf\OpenTelemetry\Listener\MetricFlushListener;
 use OpenTelemetry\SDK\Metrics\MeterProviderInterface;
-use OpenTelemetry\SDK\Metrics\MetricReaderInterface;
 use PHPUnit\Framework\TestCase;
 use Swoole\Server;
 
