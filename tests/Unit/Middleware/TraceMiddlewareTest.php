@@ -90,7 +90,8 @@ class TraceMiddlewareTest extends TestCase
         $middleware = new TraceMiddleware(
             $config,
             $this->instrumentation,
-            $this->switcher
+            $this->switcher,
+            $this->createMock(\OpenTelemetry\SDK\Trace\TracerProviderInterface::class)
         );
 
         $result = $middleware->process($this->request, $this->handler);
@@ -107,7 +108,8 @@ class TraceMiddlewareTest extends TestCase
         $middleware = new TraceMiddleware(
             $this->config,
             $this->instrumentation,
-            $this->createMock(Switcher::class)
+            $this->createMock(Switcher::class),
+            $this->createMock(\OpenTelemetry\SDK\Trace\TracerProviderInterface::class)
         );
 
         $result = $middleware->process($this->request, $this->handler);
@@ -170,7 +172,8 @@ class TraceMiddlewareTest extends TestCase
         $middleware = new TraceMiddleware(
             $this->config,
             $this->instrumentation,
-            $this->switcher
+            $this->switcher,
+            $this->createMock(\OpenTelemetry\SDK\Trace\TracerProviderInterface::class)
         );
 
         $result = $middleware->process($this->request, $this->handler);
@@ -208,7 +211,8 @@ class TraceMiddlewareTest extends TestCase
         $middleware = new TraceMiddleware(
             $this->config,
             $this->instrumentation,
-            $this->switcher
+            $this->switcher,
+            $this->createMock(\OpenTelemetry\SDK\Trace\TracerProviderInterface::class)
         );
 
         $middleware->process($this->request, $handler);
@@ -235,7 +239,7 @@ class TraceMiddlewareTest extends TestCase
         $this->request->method('getMethod')->willReturn($method);
         $this->request->method('getHeaderLine')
             ->willReturnMap(array_map(function ($key, $value) {
-                return [$key, current($value)];
+                return [$key, is_array($value) ? current($value) : $value];
             }, array_keys($headers), array_values($headers)));
 
         $this->request->method('getHeaders')->willReturn($headers);
