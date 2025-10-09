@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Hyperf\OpenTelemetry;
 
+use Hyperf\OpenTelemetry\Factory\Trace\TracerProviderFactory;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use Hyperf\OpenTelemetry\Factory\CachedInstrumentationFactory;
 use Hyperf\OpenTelemetry\Factory\OTelResourceFactory;
+use OpenTelemetry\SDK\Trace\TracerProviderInterface;
 
 class ConfigProvider
 {
@@ -22,6 +24,7 @@ class ConfigProvider
             'dependencies' => [
                 CachedInstrumentation::class => CachedInstrumentationFactory::class,
                 ResourceInfo::class => OTelResourceFactory::class,
+                TracerProviderInterface::class => TracerProviderFactory::class,
             ],
             'listeners' => [
                 Listener\DbQueryExecutedListener::class,

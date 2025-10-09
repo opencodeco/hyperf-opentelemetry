@@ -24,11 +24,11 @@ class BatchSpanProcessorFactory implements TraceProcessorFactoryInterface
         return new BatchSpanProcessor(
             exporter: $exporter,
             clock: Clock::getDefault(),
-            maxQueueSize: $options['max_queue_size'] ?? BatchSpanProcessor::DEFAULT_MAX_EXPORT_BATCH_SIZE,
+            maxQueueSize: $options['max_queue_size'] ?? BatchSpanProcessor::DEFAULT_MAX_QUEUE_SIZE,
             scheduledDelayMillis: $options['schedule_delay_ms'] ?? BatchSpanProcessor::DEFAULT_SCHEDULE_DELAY,
             exportTimeoutMillis: $options['export_timeout_ms'] ?? BatchSpanProcessor::DEFAULT_EXPORT_TIMEOUT,
             maxExportBatchSize: $options['max_export_batch_size'] ?? BatchSpanProcessor::DEFAULT_MAX_EXPORT_BATCH_SIZE,
-            autoFlush: $options['auto_flush'] ?? true,
+            autoFlush: $options['auto_flush'] ?? false,
         );
     }
 }

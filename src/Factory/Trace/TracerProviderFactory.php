@@ -7,6 +7,7 @@ namespace Hyperf\OpenTelemetry\Factory\Trace;
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Contract\ContainerInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
+use OpenTelemetry\SDK\Trace\NoopTracerProvider;
 use OpenTelemetry\SDK\Trace\SamplerInterface;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use OpenTelemetry\SDK\Trace\SpanProcessorInterface;
@@ -25,8 +26,14 @@ class TracerProviderFactory
     ) {
     }
 
-    public function getTracerProvider(): TracerProviderInterface
+    public function __invoke(ContainerInterface $container): TracerProviderInterface
     {
+        $traces = $this->config->get('open-telemetry.traces.enabled', false);
+
+        if (! $traces) {
+            return new NoopTracerProvider();
+        }
+
         $exporter = $this->getExporter();
         $processor = $this->getProcessor($exporter);
         $sampler = $this->getSampler();

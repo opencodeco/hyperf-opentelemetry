@@ -13,28 +13,26 @@ use OpenTelemetry\SDK\Trace\NoopTracerProvider;
 use Hyperf\OpenTelemetry\Factory\Log\LoggerProviderFactory;
 use Hyperf\OpenTelemetry\Factory\Metric\MeterProviderFactory;
 use Hyperf\OpenTelemetry\Factory\Trace\TracerProviderFactory;
+use OpenTelemetry\SDK\Trace\TracerProviderInterface;
 
 class SDKBuilder
 {
     public function __construct(
         protected ConfigInterface $config,
         protected LoggerProviderFactory $logProviderFactory,
-        protected TracerProviderFactory $tracerProviderFactory,
+        protected TracerProviderInterface $tracerProvider,
         protected MeterProviderFactory $meterProviderFactory,
     ) {
     }
 
     public function build(): void
     {
-        $traces = $this->config->get('open-telemetry.traces.enabled', false);
         $metrics = $this->config->get('open-telemetry.metrics.enabled', false);
         $logs = $this->config->get('open-telemetry.logs.enabled', false);
 
         $enabled = ! Sdk::isDisabled();
 
-        $tracerProvider = ($traces && $enabled)
-            ? $this->tracerProviderFactory->getTracerProvider()
-            : new NoopTracerProvider();
+        $tracerProvider = $enabled ? $this->tracerProvider : new NoopTracerProvider();
 
         $meterProvider = ($metrics && $enabled)
             ? $this->meterProviderFactory->getMeterProvider()

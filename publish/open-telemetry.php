@@ -42,7 +42,7 @@ return [
                     'content_type' => 'application/x-protobuf',
                     'compression' => TransportFactoryInterface::COMPRESSION_GZIP,
                     'headers' => [],
-                    'timeout' => (float) env('OTEL_TRACES_TIMEOUT_MS', 3),
+                    'timeout' => (float) env('OTEL_TRACES_TIMEOUT_SECONDS', 3),
                     'retry' => [
                         'delay_ms' => (int) env('OTEL_TRACES_RETRY_DELAY_MS', 100),
                         'max_retries' => (int) env('OTEL_TRACES_RETRY_MAX', 2),
@@ -57,11 +57,11 @@ return [
             'batch' => [
                 'driver' => BatchSpanProcessorFactory::class,
                 'options' => [
-                    'max_queue_size' => BatchSpanProcessor::DEFAULT_MAX_EXPORT_BATCH_SIZE,
+                    'max_queue_size' => BatchSpanProcessor::DEFAULT_MAX_QUEUE_SIZE,
                     'schedule_delay_ms' => BatchSpanProcessor::DEFAULT_SCHEDULE_DELAY,
                     'export_timeout_ms' => BatchSpanProcessor::DEFAULT_EXPORT_TIMEOUT,
                     'max_export_batch_size' => BatchSpanProcessor::DEFAULT_MAX_EXPORT_BATCH_SIZE,
-                    'auto_flush' => true,
+                    'auto_flush' => false,
                 ],
             ],
             'simple' => [
@@ -88,7 +88,7 @@ return [
                     'content_type' => 'application/x-protobuf',
                     'compression' => TransportFactoryInterface::COMPRESSION_GZIP,
                     'headers' => [],
-                    'timeout' => (float) env('OTEL_METRICS_TIMEOUT_MS', 3),
+                    'timeout' => (float) env('OTEL_METRICS_TIMEOUT_SECONDS', 3),
                     'retry' => [
                         'delay_ms' => (int) env('OTEL_METRICS_RETRY_DELAY_MS', 100),
                         'max_retries' => (int) env('OTEL_METRICS_RETRY_MAX', 2),
@@ -113,7 +113,7 @@ return [
                     'content_type' => 'application/x-protobuf',
                     'compression' => TransportFactoryInterface::COMPRESSION_GZIP,
                     'headers' => [],
-                    'timeout' => (float) env('OTEL_LOGS_TIMEOUT_MS', 3),
+                    'timeout' => (float) env('OTEL_LOGS_TIMEOUT_SECONDS', 3),
                     'retry' => [
                         'delay_ms' => (int) env('OTEL_LOGS_RETRY_DELAY_MS', 100),
                         'max_retries' => (int) env('OTEL_LOGS_RETRY_MAX', 2),
@@ -128,11 +128,11 @@ return [
             'batch' => [
                 'driver' => BatchLogProcessorFactory::class,
                 'options' => [
-                    'max_queue_size' => BatchLogRecordProcessor::DEFAULT_MAX_EXPORT_BATCH_SIZE,
+                    'max_queue_size' => BatchLogRecordProcessor::DEFAULT_MAX_QUEUE_SIZE,
                     'schedule_delay_ms' => BatchLogRecordProcessor::DEFAULT_SCHEDULE_DELAY,
                     'export_timeout_ms' => BatchLogRecordProcessor::DEFAULT_EXPORT_TIMEOUT,
                     'max_export_batch_size' => BatchLogRecordProcessor::DEFAULT_MAX_EXPORT_BATCH_SIZE,
-                    'auto_flush' => true,
+                    'auto_flush' => false,
                 ],
             ],
             'simple' => [

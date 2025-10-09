@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Hyperf\OpenTelemetry\Middleware;
 
+use Hyperf\Context\ApplicationContext;
+use Hyperf\Contract\StdoutLoggerInterface;
 use OpenTelemetry\API\Trace\SpanKind;
+use OpenTelemetry\SDK\Trace\TracerProviderInterface;
 use OpenTelemetry\SemConv\Attributes\ClientAttributes;
 use OpenTelemetry\SemConv\Attributes\HttpAttributes;
 use OpenTelemetry\SemConv\Attributes\ServerAttributes;
@@ -16,6 +19,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Throwable;
+use function Hyperf\Support\make;
 
 class TraceMiddleware extends AbstractMiddleware
 {
@@ -49,6 +53,18 @@ class TraceMiddleware extends AbstractMiddleware
             ],
             explicitContext: $context
         );
+
+        defer(function () {
+            try {
+                make(TracerProviderInterface::class)->forceFlush();
+            } catch (Throwable $exception) {
+                if (ApplicationContext::hasContainer() && ApplicationContext::getContainer()->has(StdoutLoggerInterface::class)) {
+                    ApplicationContext::getContainer()
+                        ->get(StdoutLoggerInterface::class)
+                        ->error($exception->getMessage());
+                }
+            }
+        });
 
         try {
             $response = $handler->handle($request);
