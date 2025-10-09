@@ -12,7 +12,7 @@ use Hyperf\Coordinator\Timer;
 use Hyperf\Coroutine\Coroutine;
 use Hyperf\Event\Contract\ListenerInterface;
 use Hyperf\Framework\Event\BeforeWorkerStart;
-use OpenTelemetry\SDK\Metrics\MetricReaderInterface;
+use OpenTelemetry\SDK\Metrics\MeterProviderInterface;
 use Hyperf\Command\Event\BeforeHandle;
 
 class MetricFlushListener implements ListenerInterface
@@ -42,9 +42,9 @@ class MetricFlushListener implements ListenerInterface
         );
 
         $timerId = $this->timer->tick($timerInterval, function (): void {
-            if ($this->container->has(MetricReaderInterface::class)) {
-                $metricReader = $this->container->get(MetricReaderInterface::class);
-                $metricReader->collect();
+            if ($this->container->has(MeterProviderInterface::class)) {
+                $metricProvider = $this->container->get(MeterProviderInterface::class);
+                $metricProvider->forceFlush();
             }
         });
 
