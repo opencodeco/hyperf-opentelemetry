@@ -11,7 +11,6 @@ use OpenTelemetry\SDK\Metrics\MeterProvider;
 use OpenTelemetry\SDK\Metrics\MeterProviderInterface;
 use OpenTelemetry\SDK\Metrics\MetricExporterInterface;
 use OpenTelemetry\SDK\Metrics\MetricReader\ExportingReader;
-use OpenTelemetry\SDK\Metrics\MetricReaderInterface;
 use OpenTelemetry\SDK\Metrics\NoopMeterProvider;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 
@@ -21,7 +20,6 @@ class MeterProviderFactory
         protected readonly ConfigInterface $config,
         protected readonly ContainerInterface $container,
         protected readonly ResourceInfo $resource,
-        protected readonly MetricReaderInterface $metricReader,
     ) {
     }
 
