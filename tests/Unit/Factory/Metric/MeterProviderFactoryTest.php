@@ -24,7 +24,7 @@ class MeterProviderFactoryTest extends TestCase
         $resource = $this->createMock(ResourceInfo::class);
         $metricReader = $this->createMock(MetricReaderInterface::class);
 
-        $factory = new MeterProviderFactory($config, $resource, $metricReader);
+        $factory = new MeterProviderFactory($config, $container, $resource, $metricReader);
         $meterProvider = $factory($container);
         $this->assertInstanceOf(MeterProviderInterface::class, $meterProvider);
     }

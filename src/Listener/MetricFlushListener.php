@@ -21,7 +21,8 @@ class MetricFlushListener implements ListenerInterface
 
     public function __construct(
         protected readonly ContainerInterface $container,
-        protected readonly ConfigInterface $config
+        protected readonly ConfigInterface $config,
+        protected readonly MeterProviderInterface $meterProvider,
     ) {
         $this->timer = $this->container->make(Timer::class);
     }
@@ -42,10 +43,7 @@ class MetricFlushListener implements ListenerInterface
         );
 
         $timerId = $this->timer->tick($timerInterval, function (): void {
-            if ($this->container->has(MeterProviderInterface::class)) {
-                $metricProvider = $this->container->get(MeterProviderInterface::class);
-                $metricProvider->forceFlush();
-            }
+            $this->meterProvider->forceFlush();
         });
 
         Coroutine::create(function () use ($timerId): void {

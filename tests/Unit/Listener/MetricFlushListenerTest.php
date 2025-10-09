@@ -12,6 +12,7 @@ use Hyperf\Coordinator\CoordinatorManager;
 use Hyperf\Coordinator\Timer;
 use Hyperf\Framework\Event\BeforeWorkerStart;
 use Hyperf\OpenTelemetry\Listener\MetricFlushListener;
+use OpenTelemetry\SDK\Metrics\MeterProviderInterface;
 use OpenTelemetry\SDK\Metrics\MetricReaderInterface;
 use PHPUnit\Framework\TestCase;
 use Swoole\Server;
@@ -25,8 +26,6 @@ class MetricFlushListenerTest extends TestCase
 
     private ContainerInterface $container;
 
-    private MetricReaderInterface $metricReader;
-
     private Timer $timer;
 
     protected function setUp(): void
@@ -35,8 +34,8 @@ class MetricFlushListenerTest extends TestCase
 
         $this->config = $this->createMock(ConfigInterface::class);
         $this->container = $this->createMock(ContainerInterface::class);
-        $this->metricReader = $this->createMock(MetricReaderInterface::class);
         $this->timer = $this->createMock(Timer::class);
+        $this->meterProvider = $this->createMock(MeterProviderInterface::class);
 
         $this->container->expects($this->once())
             ->method('make')
@@ -53,7 +52,7 @@ class MetricFlushListenerTest extends TestCase
 
     public function testListenReturnsCorrectEvents(): void
     {
-        $listener = new MetricFlushListener($this->container, $this->config);
+        $listener = new MetricFlushListener($this->container, $this->config, $this->meterProvider);
 
         $this->assertEquals([BeforeWorkerStart::class, BeforeHandle::class], $listener->listen());
     }
@@ -67,34 +66,23 @@ class MetricFlushListenerTest extends TestCase
             ->with('open-telemetry.exporter.metrics.flush_interval', 5)
             ->willReturn(10);
 
-        $this->container->expects($this->once())
-            ->method('has')
-            ->with(MetricReaderInterface::class)
-            ->willReturn(true);
-
         $this->timer->expects($this->once())
             ->method('tick')
             ->with(
                 10,
                 $this->callback(function ($closure) {
                     $this->assertIsCallable($closure);
-
                     $closure();
-
                     return true;
                 })
             );
 
-        $this->container->expects($this->once())
-            ->method('get')
-            ->with(MetricReaderInterface::class)
-            ->willReturn($this->metricReader);
+        $this->meterProvider->expects($this->once())
+            ->method('forceFlush');
 
-        $this->metricReader->expects($this->once())
-            ->method('collect');
-
-        $listener = new MetricFlushListener($this->container, $this->config);
+        $listener = new MetricFlushListener($this->container, $this->config, $this->meterProvider);
         $listener->process($event);
+        $this->assertTrue(true);
     }
 
     public function testProcessWithoutMetricReaderInContainer(): void
@@ -106,29 +94,22 @@ class MetricFlushListenerTest extends TestCase
             ->with('open-telemetry.exporter.metrics.flush_interval', 5)
             ->willReturn(10);
 
-        $this->container->expects($this->once())
-            ->method('has')
-            ->with(MetricReaderInterface::class)
-            ->willReturn(false);
-
         $this->timer->expects($this->once())
             ->method('tick')
             ->with(
                 10,
                 $this->callback(function ($closure) {
                     $this->assertIsCallable($closure);
-
                     $closure();
-
                     return true;
                 })
             );
 
-        $this->container->expects($this->never())
-            ->method('get')
-            ->with(MetricReaderInterface::class);
+        $this->meterProvider->expects($this->once())
+            ->method('forceFlush');
 
-        $listener = new MetricFlushListener($this->container, $this->config);
+        $listener = new MetricFlushListener($this->container, $this->config, $this->meterProvider);
         $listener->process($event);
+        $this->assertTrue(true);
     }
 }

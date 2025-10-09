@@ -6,12 +6,10 @@ namespace Hyperf\OpenTelemetry;
 
 use Hyperf\OpenTelemetry\Factory\Log\LoggerProviderFactory;
 use Hyperf\OpenTelemetry\Factory\Metric\MeterProviderFactory;
-use Hyperf\OpenTelemetry\Factory\Metric\MeterReaderFactory;
 use Hyperf\OpenTelemetry\Factory\Trace\TracerProviderFactory;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\SDK\Logs\LoggerProviderInterface;
 use OpenTelemetry\SDK\Metrics\MeterProviderInterface;
-use OpenTelemetry\SDK\Metrics\MetricReaderInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use Hyperf\OpenTelemetry\Factory\CachedInstrumentationFactory;
 use Hyperf\OpenTelemetry\Factory\OTelResourceFactory;
@@ -31,7 +29,6 @@ class ConfigProvider
                 CachedInstrumentation::class => CachedInstrumentationFactory::class,
                 ResourceInfo::class => OTelResourceFactory::class,
                 TracerProviderInterface::class => TracerProviderFactory::class,
-                MetricReaderInterface::class => MeterReaderFactory::class,
                 MeterProviderInterface::class => MeterProviderFactory::class,
                 LoggerProviderInterface::class => LoggerProviderFactory::class,
             ],
