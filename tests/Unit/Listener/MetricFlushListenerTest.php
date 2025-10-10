@@ -108,6 +108,5 @@ class MetricFlushListenerTest extends TestCase
 
         $listener = new MetricFlushListener($this->container, $this->config, $this->meterProvider);
         $listener->process($event);
-        $this->assertTrue(true);
     }
 }
