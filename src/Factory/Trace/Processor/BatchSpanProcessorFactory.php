@@ -16,7 +16,6 @@ class BatchSpanProcessorFactory implements TraceProcessorFactoryInterface
     public function __construct(
         protected readonly ConfigInterface $config,
         protected readonly MeterProviderInterface $meterProvider,
-
     ) {
     }
 
