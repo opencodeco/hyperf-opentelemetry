@@ -6,50 +6,28 @@ namespace Hyperf\OpenTelemetry\Listener;
 
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Contract\ContainerInterface;
-use Hyperf\Coordinator\Constants;
-use Hyperf\Coordinator\CoordinatorManager;
-use Hyperf\Coordinator\Timer;
-use Hyperf\Coroutine\Coroutine;
+use Hyperf\Contract\StdoutLoggerInterface;
 use Hyperf\Event\Contract\ListenerInterface;
-use Hyperf\Framework\Event\BeforeWorkerStart;
-use Hyperf\Command\Event\BeforeHandle;
 use OpenTelemetry\SDK\Trace\TracerProviderInterface;
 
-class TraceFlushListener implements ListenerInterface
+class TraceFlushListener extends AbstractFlushListener implements ListenerInterface
 {
-    private Timer $timer;
-
     public function __construct(
-        protected readonly ContainerInterface $container,
-        protected readonly ConfigInterface $config,
+        ContainerInterface $container,
+        ConfigInterface $config,
+        StdoutLoggerInterface $logger,
         protected readonly TracerProviderInterface $tracerProvider,
     ) {
-        $this->timer = $this->container->make(Timer::class);
+        parent::__construct($container, $config, $logger);
     }
 
-    public function listen(): array
+    function flush(): void
     {
-        return [
-            BeforeWorkerStart::class,
-            BeforeHandle::class,
-        ];
+        $this->tracerProvider->forceFlush();
     }
 
-    public function process(object $event): void
+    function exportInterval(): float
     {
-        //TODO: test force flush is called periodically
-        $timerInterval = (int) $this->config->get(
-            'open-telemetry.exporter.metrics.flush_interval',
-            5
-        );
-
-        $timerId = $this->timer->tick($timerInterval, function (): void {
-            $this->tracerProvider->forceFlush();
-        });
-
-        Coroutine::create(function () use ($timerId): void {
-            CoordinatorManager::until(Constants::WORKER_EXIT)->yield();
-            $this->timer->clear($timerId);
-        });
+        return (float) $this->config->get('open-telemetry.traces.export_interval', 5);
     }
 }

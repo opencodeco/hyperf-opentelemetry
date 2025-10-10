@@ -6,49 +6,28 @@ namespace Hyperf\OpenTelemetry\Listener;
 
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Contract\ContainerInterface;
-use Hyperf\Coordinator\Constants;
-use Hyperf\Coordinator\CoordinatorManager;
-use Hyperf\Coordinator\Timer;
-use Hyperf\Coroutine\Coroutine;
+use Hyperf\Contract\StdoutLoggerInterface;
 use Hyperf\Event\Contract\ListenerInterface;
-use Hyperf\Framework\Event\BeforeWorkerStart;
 use OpenTelemetry\SDK\Metrics\MeterProviderInterface;
-use Hyperf\Command\Event\BeforeHandle;
 
-class MetricFlushListener implements ListenerInterface
+class MetricFlushListener extends AbstractFlushListener implements ListenerInterface
 {
-    private Timer $timer;
-
     public function __construct(
-        protected readonly ContainerInterface $container,
-        protected readonly ConfigInterface $config,
+        ContainerInterface $container,
+        ConfigInterface $config,
+        StdoutLoggerInterface $logger,
         protected readonly MeterProviderInterface $meterProvider,
     ) {
-        $this->timer = $this->container->make(Timer::class);
+        parent::__construct($container, $config, $logger);
     }
 
-    public function listen(): array
+    function flush(): void
     {
-        return [
-            BeforeWorkerStart::class,
-            BeforeHandle::class,
-        ];
+        $this->meterProvider->forceFlush();
     }
 
-    public function process(object $event): void
+    function exportInterval(): float
     {
-        $timerInterval = (int) $this->config->get(
-            'open-telemetry.exporter.metrics.flush_interval',
-            5
-        );
-
-        $timerId = $this->timer->tick($timerInterval, function (): void {
-            $this->meterProvider->forceFlush();
-        });
-
-        Coroutine::create(function () use ($timerId): void {
-            CoordinatorManager::until(Constants::WORKER_EXIT)->yield();
-            $this->timer->clear($timerId);
-        });
+        return (float) $this->config->get('open-telemetry.metrics.export_interval', 5);
     }
 }

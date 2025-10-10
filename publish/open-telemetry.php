@@ -32,6 +32,7 @@ return [
     'traces' => [
         'enabled' => env('OTEL_TRACES_ENABLED', true),
         'exporter' => env('OTEL_TRACES_EXPORTER', 'otlp_http'),
+        'export_interval' => (int) env('OTEL_TRACES_EXPORT_INTERVAL', 5),
         'processor' => env('OTEL_TRACES_PROCESSOR', 'batch'),
         'sampler' => env('OTEL_TRACES_SAMPLER', 'always_on'),
         'exporters' => [
