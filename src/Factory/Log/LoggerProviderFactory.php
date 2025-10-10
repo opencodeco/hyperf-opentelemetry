@@ -10,6 +10,7 @@ use OpenTelemetry\SDK\Logs\LoggerProvider;
 use OpenTelemetry\SDK\Logs\LoggerProviderInterface;
 use OpenTelemetry\SDK\Logs\LogRecordExporterInterface;
 use OpenTelemetry\SDK\Logs\LogRecordProcessorInterface;
+use OpenTelemetry\SDK\Logs\NoopLoggerProvider;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use Hyperf\OpenTelemetry\Factory\Log\Exporter\LogExporterFactoryInterface;
 use Hyperf\OpenTelemetry\Factory\Log\Processor\LogProcessorFactoryInterface;
@@ -23,8 +24,14 @@ class LoggerProviderFactory
     ) {
     }
 
-    public function getLoggerProvider(): LoggerProviderInterface
+    public function __invoke(ContainerInterface $container): LoggerProviderInterface
     {
+        $logsEnabled = $this->config->get('open-telemetry.logs.enabled', false);
+
+        if (! $logsEnabled) {
+            return new NoopLoggerProvider();
+        }
+
         $exporter = $this->getExporter();
         $processor = $this->getProcessor($exporter);
 

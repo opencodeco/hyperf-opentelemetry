@@ -14,14 +14,15 @@ use Hyperf\Coordinator\CoordinatorManager;
 use Hyperf\Coordinator\Timer;
 use Hyperf\Framework\Event\BeforeWorkerStart;
 use Hyperf\OpenTelemetry\Listener\MetricFlushListener;
-use OpenTelemetry\SDK\Metrics\MeterProviderInterface;
+use Hyperf\OpenTelemetry\Listener\TraceFlushListener;
+use OpenTelemetry\SDK\Trace\TracerProviderInterface;
 use PHPUnit\Framework\TestCase;
 use Swoole\Server;
 
 /**
  * @internal
  */
-class MetricFlushListenerTest extends TestCase
+class TraceFlushListenerTest extends TestCase
 {
     private ConfigInterface $config;
 
@@ -29,7 +30,7 @@ class MetricFlushListenerTest extends TestCase
 
     private StdoutLoggerInterface $logger;
 
-    private MeterProviderInterface $meterProvider;
+    private TracerProviderInterface $tracerProvider;
 
     private Timer $timer;
 
@@ -41,7 +42,7 @@ class MetricFlushListenerTest extends TestCase
         $this->container = $this->createMock(ContainerInterface::class);
         $this->timer = $this->createMock(Timer::class);
         $this->logger = $this->createMock(StdoutLoggerInterface::class);
-        $this->meterProvider = $this->createMock(MeterProviderInterface::class);
+        $this->tracerProvider = $this->createMock(TracerProviderInterface::class);
 
         $this->container->expects($this->once())
             ->method('make')
@@ -58,7 +59,7 @@ class MetricFlushListenerTest extends TestCase
 
     public function testListenReturnsCorrectEvents(): void
     {
-        $listener = new MetricFlushListener($this->container, $this->config, $this->logger, $this->meterProvider);
+        $listener = new TraceFlushListener($this->container, $this->config, $this->logger, $this->tracerProvider);
         $this->assertEquals([
             BeforeWorkerStart::class,
             BeforeHandle::class,
@@ -72,7 +73,7 @@ class MetricFlushListenerTest extends TestCase
 
         $this->config->expects($this->once())
             ->method('get')
-            ->with('open-telemetry.metrics.export_interval', 5)
+            ->with('open-telemetry.traces.export_interval', 5)
             ->willReturn(10);
 
         $this->timer->expects($this->once())
@@ -86,21 +87,21 @@ class MetricFlushListenerTest extends TestCase
                 })
             );
 
-        $this->meterProvider->expects($this->once())
+        $this->tracerProvider->expects($this->once())
             ->method('forceFlush');
 
-        $listener = new MetricFlushListener($this->container, $this->config, $this->logger, $this->meterProvider);
+        $listener = new TraceFlushListener($this->container, $this->config, $this->logger, $this->tracerProvider);
         $listener->process($event);
-        $this->assertInstanceOf(MetricFlushListener::class, $listener);
+        $this->assertInstanceOf(TraceFlushListener::class, $listener);
     }
 
-    public function testProcessWithoutMetricReaderInContainer(): void
+    public function testProcessWithoutTracerReaderInContainer(): void
     {
         $event = new BeforeWorkerStart($this->createMock(Server::class), 0);
 
         $this->config->expects($this->once())
             ->method('get')
-            ->with('open-telemetry.metrics.export_interval', 5)
+            ->with('open-telemetry.traces.export_interval', 5)
             ->willReturn(10);
 
         $this->timer->expects($this->once())
@@ -114,11 +115,11 @@ class MetricFlushListenerTest extends TestCase
                 })
             );
 
-        $this->meterProvider->expects($this->once())
+        $this->tracerProvider->expects($this->once())
             ->method('forceFlush');
 
-        $listener = new MetricFlushListener($this->container, $this->config, $this->logger, $this->meterProvider);
+        $listener = new TraceFlushListener($this->container, $this->config, $this->logger, $this->tracerProvider);
         $listener->process($event);
-        $this->assertInstanceOf(MetricFlushListener::class, $listener);
+        $this->assertInstanceOf(TraceFlushListener::class, $listener);
     }
 }

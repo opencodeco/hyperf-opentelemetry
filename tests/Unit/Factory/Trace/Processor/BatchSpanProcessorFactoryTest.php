@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Factory\Trace\Processor;
 
 use Hyperf\Contract\ConfigInterface;
+use OpenTelemetry\SDK\Metrics\MeterProviderInterface;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use OpenTelemetry\SDK\Trace\SpanProcessor\BatchSpanProcessor;
 use OpenTelemetry\SDK\Trace\SpanProcessorInterface;
@@ -24,7 +25,8 @@ class BatchSpanProcessorFactoryTest extends TestCase
             ->willReturn([]);
 
         $exporter = $this->createMock(SpanExporterInterface::class);
-        $factory = new BatchSpanProcessorFactory($config);
+        $meterProvider = $this->createMock(MeterProviderInterface::class);
+        $factory = new BatchSpanProcessorFactory($config, $meterProvider);
         $processor = $factory->make($exporter);
 
         $this->assertInstanceOf(SpanProcessorInterface::class, $processor);
@@ -46,7 +48,8 @@ class BatchSpanProcessorFactoryTest extends TestCase
             ->willReturn($options);
 
         $exporter = $this->createMock(SpanExporterInterface::class);
-        $factory = new BatchSpanProcessorFactory($config);
+        $meterProvider = $this->createMock(MeterProviderInterface::class);
+        $factory = new BatchSpanProcessorFactory($config, $meterProvider);
         $processor = $factory->make($exporter);
 
         $this->assertInstanceOf(SpanProcessorInterface::class, $processor);

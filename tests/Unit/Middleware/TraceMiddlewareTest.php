@@ -235,7 +235,7 @@ class TraceMiddlewareTest extends TestCase
         $this->request->method('getMethod')->willReturn($method);
         $this->request->method('getHeaderLine')
             ->willReturnMap(array_map(function ($key, $value) {
-                return [$key, current($value)];
+                return [$key, is_array($value) ? current($value) : $value];
             }, array_keys($headers), array_values($headers)));
 
         $this->request->method('getHeaders')->willReturn($headers);

@@ -57,7 +57,7 @@ class TracerProviderFactoryTest extends TestCase
             ]);
 
         $factory = new TracerProviderFactory($config, $container, $resource);
-        $tracerProvider = $factory->getTracerProvider();
+        $tracerProvider = $factory($container);
         $this->assertInstanceOf(TracerProviderInterface::class, $tracerProvider);
     }
 

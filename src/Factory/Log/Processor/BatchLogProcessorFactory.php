@@ -24,11 +24,11 @@ class BatchLogProcessorFactory implements LogProcessorFactoryInterface
         return new BatchProcessor(
             exporter: $exporter,
             clock: Clock::getDefault(),
-            maxQueueSize: $options['max_queue_size'] ?? BatchProcessor::DEFAULT_MAX_EXPORT_BATCH_SIZE,
+            maxQueueSize: $options['max_queue_size'] ?? BatchProcessor::DEFAULT_MAX_QUEUE_SIZE,
             scheduledDelayMillis: $options['schedule_delay_ms'] ?? BatchProcessor::DEFAULT_SCHEDULE_DELAY,
             exportTimeoutMillis: $options['export_timeout_ms'] ?? BatchProcessor::DEFAULT_EXPORT_TIMEOUT,
             maxExportBatchSize: $options['max_export_batch_size'] ?? BatchProcessor::DEFAULT_MAX_EXPORT_BATCH_SIZE,
-            autoFlush: $options['auto_flush'] ?? true,
+            autoFlush: $options['auto_flush'] ?? false,
         );
     }
 }
