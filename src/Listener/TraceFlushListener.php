@@ -37,6 +37,7 @@ class TraceFlushListener implements ListenerInterface
 
     public function process(object $event): void
     {
+        //TODO: test force flush is called periodically
         $timerInterval = (int) $this->config->get(
             'open-telemetry.exporter.metrics.flush_interval',
             5
