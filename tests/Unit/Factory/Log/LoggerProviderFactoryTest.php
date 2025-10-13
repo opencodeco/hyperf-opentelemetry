@@ -48,7 +48,7 @@ class LoggerProviderFactoryTest extends TestCase
             ]);
 
         $factory = new LoggerProviderFactory($config, $container, $resource);
-        $loggerProvider = $factory->getLoggerProvider();
+        $loggerProvider = $factory($container);
         $this->assertInstanceOf(LoggerProviderInterface::class, $loggerProvider);
     }
 

@@ -4,10 +4,16 @@ declare(strict_types=1);
 
 namespace Hyperf\OpenTelemetry;
 
+use Hyperf\OpenTelemetry\Factory\Log\LoggerProviderFactory;
+use Hyperf\OpenTelemetry\Factory\Metric\MeterProviderFactory;
+use Hyperf\OpenTelemetry\Factory\Trace\TracerProviderFactory;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\SDK\Logs\LoggerProviderInterface;
+use OpenTelemetry\SDK\Metrics\MeterProviderInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use Hyperf\OpenTelemetry\Factory\CachedInstrumentationFactory;
 use Hyperf\OpenTelemetry\Factory\OTelResourceFactory;
+use OpenTelemetry\SDK\Trace\TracerProviderInterface;
 
 class ConfigProvider
 {
@@ -22,10 +28,15 @@ class ConfigProvider
             'dependencies' => [
                 CachedInstrumentation::class => CachedInstrumentationFactory::class,
                 ResourceInfo::class => OTelResourceFactory::class,
+                TracerProviderInterface::class => TracerProviderFactory::class,
+                MeterProviderInterface::class => MeterProviderFactory::class,
+                LoggerProviderInterface::class => LoggerProviderFactory::class,
             ],
             'listeners' => [
-                Listener\DbQueryExecutedListener::class,
                 Listener\MetricFlushListener::class,
+                Listener\TraceFlushListener::class,
+                Listener\OtelShutdownListener::class,
+                Listener\DbQueryExecutedListener::class,
             ],
             'aspects' => [
                 Aspect\RedisAspect::class,

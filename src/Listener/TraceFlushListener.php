@@ -8,26 +8,26 @@ use Hyperf\Contract\ConfigInterface;
 use Hyperf\Contract\ContainerInterface;
 use Hyperf\Contract\StdoutLoggerInterface;
 use Hyperf\Event\Contract\ListenerInterface;
-use OpenTelemetry\SDK\Metrics\MeterProviderInterface;
+use OpenTelemetry\SDK\Trace\TracerProviderInterface;
 
-class MetricFlushListener extends AbstractFlushListener implements ListenerInterface
+class TraceFlushListener extends AbstractFlushListener implements ListenerInterface
 {
     public function __construct(
         ContainerInterface $container,
         ConfigInterface $config,
         StdoutLoggerInterface $logger,
-        protected readonly MeterProviderInterface $meterProvider,
+        protected readonly TracerProviderInterface $tracerProvider,
     ) {
         parent::__construct($container, $config, $logger);
     }
 
     function flush(): void
     {
-        $this->meterProvider->forceFlush();
+        $this->tracerProvider->forceFlush();
     }
 
     function exportInterval(): float
     {
-        return (float) $this->config->get('open-telemetry.metrics.export_interval', 5);
+        return (float) $this->config->get('open-telemetry.traces.export_interval', 5);
     }
 }

@@ -6,13 +6,13 @@ namespace Hyperf\OpenTelemetry\Factory\Metric;
 
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Contract\ContainerInterface;
+use Hyperf\OpenTelemetry\Factory\Metric\Exporter\MetricExporterFactoryInterface;
 use OpenTelemetry\SDK\Metrics\MeterProvider;
 use OpenTelemetry\SDK\Metrics\MeterProviderInterface;
 use OpenTelemetry\SDK\Metrics\MetricExporterInterface;
 use OpenTelemetry\SDK\Metrics\MetricReader\ExportingReader;
-use OpenTelemetry\SDK\Metrics\MetricReaderInterface;
+use OpenTelemetry\SDK\Metrics\NoopMeterProvider;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
-use Hyperf\OpenTelemetry\Factory\Metric\Exporter\MetricExporterFactoryInterface;
 
 class MeterProviderFactory
 {
@@ -23,17 +23,19 @@ class MeterProviderFactory
     ) {
     }
 
-    public function getMeterProvider(): MeterProviderInterface
+    public function __invoke(ContainerInterface $container): MeterProviderInterface
     {
-        $exporter = $this->getExporter();
+        $metricsEnabled = $this->config->get('open-telemetry.metrics.enabled', false);
 
-        $meterReader = new ExportingReader($exporter);
+        if (! $metricsEnabled) {
+            return new NoopMeterProvider();
+        }
 
-        $this->container->set(MetricReaderInterface::class, $meterReader);
+        $reader = new ExportingReader($this->getExporter());
 
         return MeterProvider::builder()
             ->setResource($this->resource)
-            ->addReader($meterReader)
+            ->addReader($reader)
             ->build();
     }
 
