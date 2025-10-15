@@ -96,7 +96,7 @@ class SpanScopeTest extends TestCase
 
         $spanScope = new SpanScope($spanMock, $scopeMock, $contextMock);
 
-        $attributes = [HttpAttributes::HTTP_RESPONSE_STATUS_CODE => '200'];
+        $attributes = [HttpAttributes::HTTP_RESPONSE_STATUS_CODE => 200];
 
         $spanMock->expects($this->once())->method('setAttributes')->with($attributes)->willReturnSelf();
 
