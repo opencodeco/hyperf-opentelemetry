@@ -36,12 +36,12 @@ class MetricMiddleware extends AbstractMiddleware
         try {
             $response = $handler->handle($request);
 
-            $attributes[HttpAttributes::HTTP_RESPONSE_STATUS_CODE] = (string) $response->getStatusCode();
+            $attributes[HttpAttributes::HTTP_RESPONSE_STATUS_CODE] = $response->getStatusCode();
 
             return $response;
         } catch (Throwable $exception) {
             $attributes[ErrorAttributes::ERROR_TYPE] = get_class($exception);
-            $attributes[HttpAttributes::HTTP_RESPONSE_STATUS_CODE] = '500';
+            $attributes[HttpAttributes::HTTP_RESPONSE_STATUS_CODE] = 500;
 
             throw $exception;
         } finally {
