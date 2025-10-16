@@ -83,7 +83,7 @@ class MetricMiddlewareTest extends TestCase
         $expectedAttributes = [
             HttpAttributes::HTTP_ROUTE => '/users/{number}',
             HttpAttributes::HTTP_REQUEST_METHOD => 'GET',
-            HttpAttributes::HTTP_RESPONSE_STATUS_CODE => '200',
+            HttpAttributes::HTTP_RESPONSE_STATUS_CODE => 200,
         ];
 
         $this->histogram->expects($this->once())
@@ -169,7 +169,7 @@ class MetricMiddlewareTest extends TestCase
                     HttpAttributes::HTTP_ROUTE => $path,
                     HttpAttributes::HTTP_REQUEST_METHOD => $method,
                     ErrorAttributes::ERROR_TYPE => RuntimeException::class,
-                    HttpAttributes::HTTP_RESPONSE_STATUS_CODE => '500',
+                    HttpAttributes::HTTP_RESPONSE_STATUS_CODE => 500,
                 ]
             );
 

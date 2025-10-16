@@ -159,7 +159,7 @@ class TraceMiddlewareTest extends TestCase
         $spanScope->expects($this->once())
             ->method('setAttributes')
             ->with([
-                HttpAttributes::HTTP_RESPONSE_STATUS_CODE => '200',
+                HttpAttributes::HTTP_RESPONSE_STATUS_CODE => 200,
                 HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE => '1024',
                 'http.response.header.content-type' => 'application/json',
                 'http.response.header.content-length' => '1024',
