@@ -143,11 +143,14 @@ class MetricMiddlewareTest extends TestCase
         $this->assertSame($this->response, $result);
     }
 
-    public function testProcessWithException(): void
+    /**
+     * @dataProvider exceptionCodeProvider
+     */
+    public function testProcessWithException(int $exceptionCode, int $expectedStatusCode): void
     {
         $path = '/api/error';
         $method = 'POST';
-        $exception = new RuntimeException('Test exception');
+        $exception = new RuntimeException('Test exception', $exceptionCode);
 
         $this->uri->method('getPath')->willReturn($path);
         $this->request->method('getMethod')->willReturn($method);
@@ -169,7 +172,7 @@ class MetricMiddlewareTest extends TestCase
                     HttpAttributes::HTTP_ROUTE => $path,
                     HttpAttributes::HTTP_REQUEST_METHOD => $method,
                     ErrorAttributes::ERROR_TYPE => RuntimeException::class,
-                    HttpAttributes::HTTP_RESPONSE_STATUS_CODE => 500,
+                    HttpAttributes::HTTP_RESPONSE_STATUS_CODE => $expectedStatusCode,
                 ]
             );
 
@@ -183,6 +186,24 @@ class MetricMiddlewareTest extends TestCase
         $this->expectExceptionMessage('Test exception');
 
         $middleware->process($this->request, $handler);
+    }
+
+    public static function exceptionCodeProvider(): array
+    {
+        return [
+            'Default exception code' => [
+                'exceptionCode' => 0,
+                'expectedStatusCode' => 500,
+            ],
+            'Http exception code' => [
+                'exceptionCode' => 422,
+                'expectedStatusCode' => 422,
+            ],
+            'Custom exception code' => [
+                'exceptionCode' => 1000,
+                'expectedStatusCode' => 500,
+            ],
+        ];
     }
 
     private function configureRequestMock(string $method, string $path): void
