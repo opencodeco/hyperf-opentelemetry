@@ -11,6 +11,7 @@ use Hyperf\OpenTelemetry\Support\Uri;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Swoole\Http\Status;
 use Throwable;
 
 class MetricMiddleware extends AbstractMiddleware
@@ -41,7 +42,7 @@ class MetricMiddleware extends AbstractMiddleware
             return $response;
         } catch (Throwable $exception) {
             $attributes[ErrorAttributes::ERROR_TYPE] = get_class($exception);
-            $attributes[HttpAttributes::HTTP_RESPONSE_STATUS_CODE] = 500;
+            $attributes[HttpAttributes::HTTP_RESPONSE_STATUS_CODE] = $this->getHttpStatusCodeForException($exception);
 
             throw $exception;
         } finally {
@@ -56,5 +57,13 @@ class MetricMiddleware extends AbstractMiddleware
     protected function featureName(): string
     {
         return 'client_request';
+    }
+
+    protected function getHttpStatusCodeForException(Throwable $exception): int
+    {
+        $exceptionCode = $exception->getCode();
+        $isHttpExceptionCode = is_int($exceptionCode) && Status::getReasonPhrase($exceptionCode) !== 'Unknown';
+
+        return $isHttpExceptionCode ? $exceptionCode : Status::INTERNAL_SERVER_ERROR;
     }
 }
