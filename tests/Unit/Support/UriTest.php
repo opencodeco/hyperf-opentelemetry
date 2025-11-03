@@ -118,7 +118,7 @@ class UriTest extends TestCase
 
     public function testSanitizeUuidV6()
     {
-        $uri = '/01000000-9f9e-6094-2a9d-08ddf52351e2/';
+        $uri = '/01000000-9f9e-6094-8a9d-08ddf52351e2/';
         $result = Uri::sanitize($uri);
         $this->assertStringContainsString('/{uuid}', $result);
     }
