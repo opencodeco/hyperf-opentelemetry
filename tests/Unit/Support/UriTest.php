@@ -101,4 +101,40 @@ class UriTest extends TestCase
         $result = Uri::sanitize($uri);
         $this->assertSame('/', $result);
     }
+
+    public function testSanitizeUuidV1ToV4()
+    {
+        $uri = '/5c4f7ab3-7849-4422-a262-cd1bfc5ae7ae/';
+        $result = Uri::sanitize($uri);
+        $this->assertStringContainsString('/{uuid}', $result);
+    }
+
+    public function testSanitizeUuidV1ToV5()
+    {
+        $uri = '/123e4567-e89b-12d3-a456-426614174000/';
+        $result = Uri::sanitize($uri);
+        $this->assertStringContainsString('/{uuid}', $result);
+    }
+
+    public function testSanitizeUuidV6()
+    {
+        $uri = '/01000000-9f9e-6094-2a9d-08ddf52351e2/';
+        $result = Uri::sanitize($uri);
+        $this->assertStringContainsString('/{uuid}', $result);
+    }
+
+    public function testSanitizeUuidV7()
+    {
+        $uri = '/01890f28-54c2-7d11-bc99-9bb9d1a9e9af/';
+        $result = Uri::sanitize($uri);
+        $this->assertStringContainsString('/{uuid}', $result);
+    }
+
+    public function testSanitizeUuidV8()
+    {
+        $uri = '/ffffffff-ffff-8fff-9fff-ffffffffffff/';
+        $result = Uri::sanitize($uri);
+        $this->assertStringContainsString('/{uuid}', $result);
+    }
+
 }
