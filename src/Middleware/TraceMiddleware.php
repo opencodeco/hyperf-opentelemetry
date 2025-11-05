@@ -45,7 +45,10 @@ class TraceMiddleware extends AbstractMiddleware
             attributes: [
                 HttpAttributes::HTTP_REQUEST_METHOD => $request->getMethod(),
                 UrlAttributes::URL_FULL => (string) $request->getUri(),
-                UrlAttributes::URL_PATH => $request->getUri()->getPath(),
+                UrlAttributes::URL_PATH => Uri::sanitize(
+                    $request->getUri()->getPath(), 
+                    $this->config->get('open-telemetry.traces.uri_mask', [])
+                ),
                 UrlAttributes::URL_SCHEME => $request->getUri()->getScheme(),
                 UrlAttributes::URL_QUERY => $request->getUri()->getQuery(),
                 ServerAttributes::SERVER_ADDRESS => $request->getUri()->getHost(),

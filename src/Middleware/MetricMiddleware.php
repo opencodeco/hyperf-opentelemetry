@@ -30,8 +30,11 @@ class MetricMiddleware extends AbstractMiddleware
         $startTime = microtime(true);
 
         $attributes = [
-            HttpAttributes::HTTP_ROUTE => Uri::sanitize($request->getUri()->getPath()),
             HttpAttributes::HTTP_REQUEST_METHOD => $request->getMethod(),
+            HttpAttributes::HTTP_ROUTE => Uri::sanitize(
+                $request->getUri()->getPath(), 
+                $this->config->get('open-telemetry.metrics.uri_mask', [])
+            ),
         ];
 
         try {
