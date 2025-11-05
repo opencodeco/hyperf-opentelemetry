@@ -37,7 +37,7 @@ class TraceMiddleware extends AbstractMiddleware
         }
 
         $context = $this->instrumentation->propagator()->extract($request->getHeaders());
-        $name = Uri::sanitize($path);
+        $name = Uri::sanitize($path, $this->config->get('open-telemetry.traces.uri_mask', []));
 
         $scope = $this->instrumentation->startSpan(
             name: $name,
@@ -45,7 +45,7 @@ class TraceMiddleware extends AbstractMiddleware
             attributes: [
                 HttpAttributes::HTTP_REQUEST_METHOD => $request->getMethod(),
                 UrlAttributes::URL_FULL => (string) $request->getUri(),
-                UrlAttributes::URL_PATH => $request->getUri()->getPath(),
+                UrlAttributes::URL_PATH => $name,
                 UrlAttributes::URL_SCHEME => $request->getUri()->getScheme(),
                 UrlAttributes::URL_QUERY => $request->getUri()->getQuery(),
                 ServerAttributes::SERVER_ADDRESS => $request->getUri()->getHost(),

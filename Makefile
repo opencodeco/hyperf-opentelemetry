@@ -11,5 +11,5 @@ update:
 	@docker-compose run --rm hyperf-opentelemetry -c "composer update"
 
 test:
-	@docker-compose run --rm hyperf-opentelemetry sh -c "composer test"
+	@docker-compose run --rm hyperf-opentelemetry -c "composer test"
 

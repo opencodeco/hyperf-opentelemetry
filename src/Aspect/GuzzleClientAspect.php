@@ -63,14 +63,16 @@ class GuzzleClientAspect extends AbstractAspect
             return $proceedingJoinPoint->process();
         }
 
+        $path = Uri::sanitize($request->getUri()->getPath(), $this->config->get('open-telemetry.traces.uri_mask', []));
+
         if ($this->isTracingEnabled) {
             $scope = $this->instrumentation->startSpan(
-                name: $method . ' ' . Uri::sanitize($request->getUri()->getPath()),
+                name: $method . ' ' . $path,
                 spanKind: SpanKind::KIND_CLIENT,
                 attributes: [
                     HttpAttributes::HTTP_REQUEST_METHOD => $method,
                     UrlAttributes::URL_FULL => (string) $request->getUri(),
-                    UrlAttributes::URL_PATH => $request->getUri()->getPath(),
+                    UrlAttributes::URL_PATH => $path,
                     UrlAttributes::URL_SCHEME => $request->getUri()->getScheme(),
                     UrlAttributes::URL_QUERY => $request->getUri()->getQuery(),
                     ServerAttributes::SERVER_ADDRESS => $request->getUri()->getHost(),
@@ -128,9 +130,12 @@ class GuzzleClientAspect extends AbstractAspect
                     ->createHistogram('http.client.request.duration', 'ms')
                     ->record($duration, [
                         ServerAttributes::SERVER_ADDRESS => $request->getUri()->getHost(),
-                        UrlIncubatingAttributes::URL_TEMPLATE => Uri::sanitize($request->getUri()->getPath()),
                         HttpAttributes::HTTP_REQUEST_METHOD => $request->getMethod(),
                         HttpAttributes::HTTP_RESPONSE_STATUS_CODE => $response->getStatusCode(),
+                        UrlIncubatingAttributes::URL_TEMPLATE => Uri::sanitize(
+                            $request->getUri()->getPath(),
+                            $this->config->get('open-telemetry.metrics.uri_mask', []),
+                        ),
                     ]);
             }
 
@@ -156,8 +161,11 @@ class GuzzleClientAspect extends AbstractAspect
                             ServerAttributes::SERVER_ADDRESS => $request->getUri()->getHost(),
                             HttpAttributes::HTTP_REQUEST_METHOD => $request->getMethod(),
                             HttpAttributes::HTTP_RESPONSE_STATUS_CODE => 0,
-                            UrlIncubatingAttributes::URL_TEMPLATE => Uri::sanitize($request->getUri()->getPath()),
                             ErrorAttributes::ERROR_TYPE => get_class($throwable),
+                            UrlIncubatingAttributes::URL_TEMPLATE => Uri::sanitize(
+                                $request->getUri()->getPath(),
+                                $this->config->get('open-telemetry.metrics.uri_mask', []),
+                            ),
                         ]
                     );
             }
