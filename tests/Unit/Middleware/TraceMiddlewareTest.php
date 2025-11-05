@@ -142,7 +142,75 @@ class TraceMiddlewareTest extends TestCase
                 SpanKind::KIND_SERVER,
                 [
                     HttpAttributes::HTTP_REQUEST_METHOD => 'GET',
-                    UrlAttributes::URL_FULL => 'https://api.example.com:443/users/12?limit=10',
+                    UrlAttributes::URL_FULL => 'https://api.example.com:443/users/{number}?limit=10',
+                    UrlAttributes::URL_PATH => '/users/12',
+                    UrlAttributes::URL_SCHEME => 'https',
+                    UrlAttributes::URL_QUERY => 'limit=10',
+                    ServerAttributes::SERVER_ADDRESS => 'api.example.com',
+                    ServerAttributes::SERVER_PORT => 443,
+                    UserAgentAttributes::USER_AGENT_ORIGINAL => 'TestAgent/1.0',
+                    ClientAttributes::CLIENT_ADDRESS => '192.168.1.100',
+                ],
+                $this->isType('int'),
+                $context
+            )
+            ->willReturn($spanScope);
+
+        $spanScope->expects($this->once())
+            ->method('setAttributes')
+            ->with([
+                HttpAttributes::HTTP_RESPONSE_STATUS_CODE => 200,
+                HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE => '1024',
+                'http.response.header.content-type' => 'application/json',
+                'http.response.header.content-length' => '1024',
+            ]);
+
+        $spanScope->expects($this->once())->method('end');
+
+        $middleware = new TraceMiddleware(
+            $this->config,
+            $this->instrumentation,
+            $this->switcher
+        );
+
+        $result = $middleware->process($this->request, $this->handler);
+
+        $this->assertSame($this->response, $result);
+    }
+
+    public function testProcessWithUriMaskAndSuccessRequest(): void
+    {
+
+        $this->config->method('get')
+            ->with('open-telemetry.traces.uri_mask', [])
+            ->willReturn(['/P2P[0-9A-Za-z]+/' => '{txId}']);
+
+        $this->configureRequestMock('GET', 'https://api.example.com:443/users/P2P123?limit=10');
+        $this->configureResponseMock(200);
+
+        $spanScope = $this->createMock(SpanScope::class);
+
+        $propagator = $this->createMock(TextMapPropagatorInterface::class);
+        $propagator->expects($this->once())
+            ->method('extract')
+            ->with([
+                'User-Agent' => ['TestAgent/1.0'],
+                'x-forwarded-for' => ['192.168.1.100'],
+                'remote-host' => [''],
+                'x-real-ip' => [''],
+            ])
+            ->willReturn($context = $this->createMock(ContextInterface::class));
+
+        $this->instrumentation->expects($this->once())->method('propagator')->willReturn($propagator);
+
+        $this->instrumentation->expects($this->once())
+            ->method('startSpan')
+            ->with(
+                '/users/{number}',
+                SpanKind::KIND_SERVER,
+                [
+                    HttpAttributes::HTTP_REQUEST_METHOD => 'GET',
+                    UrlAttributes::URL_FULL => 'https://api.example.com:443/users/{txId}?limit=10',
                     UrlAttributes::URL_PATH => '/users/12',
                     UrlAttributes::URL_SCHEME => 'https',
                     UrlAttributes::URL_QUERY => 'limit=10',

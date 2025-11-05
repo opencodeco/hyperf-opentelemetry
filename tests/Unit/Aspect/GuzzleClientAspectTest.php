@@ -86,6 +86,8 @@ class GuzzleClientAspectTest extends TestCase
                 ['open-telemetry.metrics.exporters.otlp_http.options.endpoint', 'localhost', 'http://collector:4318'],
                 ['open-telemetry.instrumentation.features.guzzle.options.headers.request', ['*'], ['*']],
                 ['open-telemetry.instrumentation.features.guzzle.options.headers.response', ['*'], ['*']],
+                ['open-telemetry.traces.uri_mask', [], ['/P2P[0-9A-Za-z]+/' => '{txId}']],
+                ['open-telemetry.metrics.uri_mask', [], ['/P2P[0-9A-Za-z]+/' => '{txId}']],
             ]);
 
         $this->proceedingJoinPoint->arguments = ['keys' => ['request' => $this->request]];
@@ -206,6 +208,95 @@ class GuzzleClientAspectTest extends TestCase
                 [
                     ServerAttributes::SERVER_ADDRESS => 'api.example.com',
                     UrlIncubatingAttributes::URL_TEMPLATE => '/v1/users/{number}/transactions',
+                    HttpAttributes::HTTP_REQUEST_METHOD => 'GET',
+                    HttpAttributes::HTTP_RESPONSE_STATUS_CODE => 200,
+                ]
+            );
+
+        $result = $aspect->process($this->proceedingJoinPoint);
+
+        $this->assertEquals($this->promise, $result);
+    }
+    public function testProcessWithUriMaskAndSuccessRequest(): void
+    {
+        $this->configureRequestMock(
+            'GET',
+            'https://api.example.com/v1/users/P2P123/transactions?page=1',
+            ['User-Agent' => ['TestAgent/1.0']]
+        );
+
+        $this->configureResponseMock();
+
+        $aspect = new GuzzleClientAspect(
+            $this->config,
+            $this->instrumentation,
+            $this->switcher
+        );
+
+        $this->promise->expects($this->once())
+            ->method('then')
+            ->willReturnCallback(function ($fullFilled, $rejected) {
+                $this->assertIsCallable($fullFilled);
+                $this->assertIsCallable($rejected);
+
+                $fullFilled($this->response);
+
+                return $this->promise;
+            });
+
+        // Span
+        $this->instrumentation
+            ->expects($this->once())
+            ->method('startSpan')
+            ->with(
+                $this->equalTo('GET /v1/users/{txId}/transactions'),
+                $this->equalTo(SpanKind::KIND_CLIENT),
+                [
+                    HttpAttributes::HTTP_REQUEST_METHOD => 'GET',
+                    UrlAttributes::URL_FULL => 'https://api.example.com/v1/users/12/transactions?page=1',
+                    UrlAttributes::URL_PATH => '/v1/users/12/transactions',
+                    UrlAttributes::URL_SCHEME => 'https',
+                    UrlAttributes::URL_QUERY => 'page=1',
+                    ServerAttributes::SERVER_ADDRESS => 'api.example.com',
+                    ServerAttributes::SERVER_PORT => 443,
+                    UserAgentAttributes::USER_AGENT_ORIGINAL => 'TestAgent/1.0',
+                    'http.request.header.user-agent' => 'TestAgent/1.0',
+                ]
+            )
+            ->willReturn($this->spanScope);
+
+        $this->propagator->expects($this->once())
+            ->method('inject')
+            ->with($this->request, $this->anything(), $this->spanScope->getContext());
+
+        $this->spanScope->expects($this->once())->method('detach');
+
+        $this->spanScope->expects($this->never())->method('setStatus');
+
+        $this->spanScope->expects($this->once())
+            ->method('setAttributes')
+            ->with([
+                HttpAttributes::HTTP_RESPONSE_STATUS_CODE => 200,
+                HttpIncubatingAttributes::HTTP_RESPONSE_BODY_SIZE => '1024',
+                'http.response.header.content-type' => 'application/json',
+                'http.response.header.content-length' => '1024',
+            ]);
+
+        $this->spanScope->expects($this->once())->method('end');
+
+        // Metric
+        $this->meter->expects($this->once())
+            ->method('createHistogram')
+            ->with('http.client.request.duration', 'ms')
+            ->willReturn($this->histogram);
+
+        $this->histogram->expects($this->once())
+            ->method('record')
+            ->with(
+                $this->isType('float'),
+                [
+                    ServerAttributes::SERVER_ADDRESS => 'api.example.com',
+                    UrlIncubatingAttributes::URL_TEMPLATE => '/v1/users/{txId}/transactions',
                     HttpAttributes::HTTP_REQUEST_METHOD => 'GET',
                     HttpAttributes::HTTP_RESPONSE_STATUS_CODE => 200,
                 ]

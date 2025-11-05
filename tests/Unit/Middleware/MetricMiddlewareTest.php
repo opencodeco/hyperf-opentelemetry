@@ -104,6 +104,43 @@ class MetricMiddlewareTest extends TestCase
         $this->assertSame($this->response, $result);
     }
 
+    public function testProcessWithUriMaskAndSuccessRequest(): void
+    {
+        $this->config->method('get')
+            ->with('open-telemetry.metrics.uri_mask', [])
+            ->willReturn(['/P2P[0-9A-Za-z]+/' => '{txId}']);
+
+        $this->configureRequestMock('GET', '/users/P2P123');
+        $this->configureResponseMock(200);
+
+        $this->meter->method('createHistogram')
+            ->with(HttpMetrics::HTTP_SERVER_REQUEST_DURATION, 'ms')
+            ->willReturn($this->histogram);
+
+        $expectedAttributes = [
+            HttpAttributes::HTTP_ROUTE => '/users/{txId}',
+            HttpAttributes::HTTP_REQUEST_METHOD => 'GET',
+            HttpAttributes::HTTP_RESPONSE_STATUS_CODE => 200,
+        ];
+
+        $this->histogram->expects($this->once())
+            ->method('record')
+            ->with(
+                $this->greaterThan(0),
+                $expectedAttributes
+            );
+
+        $middleware = new MetricMiddleware(
+            $this->config,
+            $this->instrumentation,
+            $this->switcher
+        );
+
+        $result = $middleware->process($this->request, $this->handler);
+
+        $this->assertSame($this->response, $result);
+    }
+
     public function testProcessWithIgnoredPath(): void
     {
         $this->configureRequestMock('GET', '/health');

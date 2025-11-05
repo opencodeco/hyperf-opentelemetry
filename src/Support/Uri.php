@@ -8,8 +8,8 @@ class Uri
 {
     public static function sanitize(string $uri, array $uriMask = []): string
     {
-        // UUID v1–v8 (RFC 4122 + RFC 9562)
-        $uuid = '/\/(?<=\/)([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})(?=\/|$)/i';
+        // UUID v1–v8 with any variant
+        $uuid = '/\/(?<=\/)([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12})(?=\/|$)/i';
 
         $defaultPatterns = [
             $uuid => '/{uuid}',
