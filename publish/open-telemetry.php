@@ -35,6 +35,7 @@ return [
         'export_interval' => (int) env('OTEL_TRACES_EXPORT_INTERVAL', 5),
         'processor' => env('OTEL_TRACES_PROCESSOR', 'batch'),
         'sampler' => env('OTEL_TRACES_SAMPLER', 'always_on'),
+        'uri_mask' => [],
         'exporters' => [
             'otlp_http' => [
                 'driver' => OtlpHttpTraceExporterFactory::class,
@@ -80,6 +81,7 @@ return [
         'enabled' => env('OTEL_METRICS_ENABLED', true),
         'exporter' => env('OTEL_METRICS_EXPORTER', 'otlp_http'),
         'export_interval' => (int) env('OTEL_METRICS_EXPORT_INTERVAL', 5),
+        'uri_mask' => [],
         'exporters' => [
             'otlp_http' => [
                 'driver' => OtlpHttpMetricExporterFactory::class,

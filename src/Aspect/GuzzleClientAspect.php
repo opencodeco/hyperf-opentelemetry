@@ -65,7 +65,10 @@ class GuzzleClientAspect extends AbstractAspect
 
         if ($this->isTracingEnabled) {
             $scope = $this->instrumentation->startSpan(
-                name: $method . ' ' . Uri::sanitize($request->getUri()->getPath()),
+                name: $method . ' ' .  Uri::sanitize(
+                    $request->getUri()->getPath(),
+                    $this->config->get('open-telemetry.traces.uri_mask', [])
+                ),
                 spanKind: SpanKind::KIND_CLIENT,
                 attributes: [
                     HttpAttributes::HTTP_REQUEST_METHOD => $method,
@@ -128,9 +131,12 @@ class GuzzleClientAspect extends AbstractAspect
                     ->createHistogram('http.client.request.duration', 'ms')
                     ->record($duration, [
                         ServerAttributes::SERVER_ADDRESS => $request->getUri()->getHost(),
-                        UrlIncubatingAttributes::URL_TEMPLATE => Uri::sanitize($request->getUri()->getPath()),
                         HttpAttributes::HTTP_REQUEST_METHOD => $request->getMethod(),
                         HttpAttributes::HTTP_RESPONSE_STATUS_CODE => $response->getStatusCode(),
+                        UrlIncubatingAttributes::URL_TEMPLATE => Uri::sanitize(
+                            $request->getUri()->getPath(),
+                            $this->config->get('open-telemetry.metrics.uri_mask', []),
+                        ),
                     ]);
             }
 
@@ -156,8 +162,11 @@ class GuzzleClientAspect extends AbstractAspect
                             ServerAttributes::SERVER_ADDRESS => $request->getUri()->getHost(),
                             HttpAttributes::HTTP_REQUEST_METHOD => $request->getMethod(),
                             HttpAttributes::HTTP_RESPONSE_STATUS_CODE => 0,
-                            UrlIncubatingAttributes::URL_TEMPLATE => Uri::sanitize($request->getUri()->getPath()),
                             ErrorAttributes::ERROR_TYPE => get_class($throwable),
+                            UrlIncubatingAttributes::URL_TEMPLATE => Uri::sanitize(
+                                $request->getUri()->getPath(),
+                                $this->config->get('open-telemetry.metrics.uri_mask', []),
+                            ),
                         ]
                     );
             }
