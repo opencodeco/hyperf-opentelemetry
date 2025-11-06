@@ -145,7 +145,7 @@ class TraceMiddlewareTest extends TestCase
                 [
                     HttpAttributes::HTTP_REQUEST_METHOD => 'GET',
                     UrlAttributes::URL_FULL => 'https://api.example.com:443/users/12?limit=10',
-                    UrlAttributes::URL_PATH => '/users/{number}',
+                    UrlAttributes::URL_PATH => '/users/12',
                     UrlAttributes::URL_SCHEME => 'https',
                     UrlAttributes::URL_QUERY => 'limit=10',
                     ServerAttributes::SERVER_ADDRESS => 'api.example.com',
@@ -208,7 +208,7 @@ class TraceMiddlewareTest extends TestCase
                 [
                     HttpAttributes::HTTP_REQUEST_METHOD => 'GET',
                     UrlAttributes::URL_FULL => 'https://api.example.com:443/users/P2P123?limit=10',
-                    UrlAttributes::URL_PATH => '/users/{identifier}',
+                    UrlAttributes::URL_PATH => '/users/P2P123',
                     UrlAttributes::URL_SCHEME => 'https',
                     UrlAttributes::URL_QUERY => 'limit=10',
                     ServerAttributes::SERVER_ADDRESS => 'api.example.com',

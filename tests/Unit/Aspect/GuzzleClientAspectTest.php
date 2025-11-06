@@ -165,7 +165,7 @@ class GuzzleClientAspectTest extends TestCase
                 [
                     HttpAttributes::HTTP_REQUEST_METHOD => 'GET',
                     UrlAttributes::URL_FULL => 'https://api.example.com/v1/users/12/transactions?page=1',
-                    UrlAttributes::URL_PATH => '/v1/users/{number}/transactions',
+                    UrlAttributes::URL_PATH => '/v1/users/12/transactions',
                     UrlAttributes::URL_SCHEME => 'https',
                     UrlAttributes::URL_QUERY => 'page=1',
                     ServerAttributes::SERVER_ADDRESS => 'api.example.com',
@@ -254,7 +254,7 @@ class GuzzleClientAspectTest extends TestCase
                 [
                     HttpAttributes::HTTP_REQUEST_METHOD => 'GET',
                     UrlAttributes::URL_FULL => 'https://api.example.com/v1/users/P2P123/transactions?page=1',
-                    UrlAttributes::URL_PATH => '/v1/users/{identifier}/transactions',
+                    UrlAttributes::URL_PATH => '/v1/users/P2P123/transactions',
                     UrlAttributes::URL_SCHEME => 'https',
                     UrlAttributes::URL_QUERY => 'page=1',
                     ServerAttributes::SERVER_ADDRESS => 'api.example.com',

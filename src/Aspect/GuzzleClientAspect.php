@@ -63,16 +63,17 @@ class GuzzleClientAspect extends AbstractAspect
             return $proceedingJoinPoint->process();
         }
 
-        $path = Uri::sanitize($request->getUri()->getPath(), $this->config->get('open-telemetry.traces.uri_mask', []));
-
         if ($this->isTracingEnabled) {
             $scope = $this->instrumentation->startSpan(
-                name: $method . ' ' . $path,
+                name: $method . ' ' .  Uri::sanitize(
+                    $request->getUri()->getPath(),
+                    $this->config->get('open-telemetry.traces.uri_mask', [])
+                ),
                 spanKind: SpanKind::KIND_CLIENT,
                 attributes: [
                     HttpAttributes::HTTP_REQUEST_METHOD => $method,
                     UrlAttributes::URL_FULL => (string) $request->getUri(),
-                    UrlAttributes::URL_PATH => $path,
+                    UrlAttributes::URL_PATH => $request->getUri()->getPath(),
                     UrlAttributes::URL_SCHEME => $request->getUri()->getScheme(),
                     UrlAttributes::URL_QUERY => $request->getUri()->getQuery(),
                     ServerAttributes::SERVER_ADDRESS => $request->getUri()->getHost(),
