@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Tests\Unit\Factory\Log\Processor;
 
 use Hyperf\Contract\ConfigInterface;
+use Hyperf\OpenTelemetry\Factory\Log\Processor\BatchLogProcessorFactory;
 use OpenTelemetry\SDK\Logs\LogRecordExporterInterface;
 use OpenTelemetry\SDK\Logs\LogRecordProcessorInterface;
 use PHPUnit\Framework\TestCase;
-use Hyperf\OpenTelemetry\Factory\Log\Processor\BatchLogProcessorFactory;
 
 /**
  * @internal

@@ -7,12 +7,16 @@ namespace Tests\Unit\Listener;
 use Hyperf\Contract\StdoutLoggerInterface;
 use Hyperf\Event\Contract\ListenerInterface;
 use Hyperf\Framework\Event\OnWorkerExit;
+use Hyperf\OpenTelemetry\Listener\OtelShutdownListener;
 use OpenTelemetry\SDK\Metrics\MeterProviderInterface;
 use OpenTelemetry\SDK\Trace\TracerProviderInterface;
 use PHPUnit\Framework\TestCase;
-use Hyperf\OpenTelemetry\Listener\OtelShutdownListener;
+use RuntimeException;
 use Swoole\Server;
 
+/**
+ * @internal
+ */
 class OtelShutdownListenerTest extends TestCase
 {
     public function testImplementsListenerInterface(): void
@@ -45,7 +49,7 @@ class OtelShutdownListenerTest extends TestCase
         $tracerProvider = $this->createMock(TracerProviderInterface::class);
         $logger = $this->createMock(StdoutLoggerInterface::class);
 
-        $meterProvider->method('shutdown')->willThrowException(new \RuntimeException('meter error'));
+        $meterProvider->method('shutdown')->willThrowException(new RuntimeException('meter error'));
         $logger->expects($this->once())->method('warning')->with($this->stringContains('meter error'));
 
         $listener = new OtelShutdownListener($meterProvider, $tracerProvider, $logger);

@@ -6,6 +6,9 @@ namespace Hyperf\OpenTelemetry\Factory\Trace;
 
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Contract\ContainerInterface;
+use Hyperf\OpenTelemetry\Factory\Trace\Exporter\TraceExporterFactoryInterface;
+use Hyperf\OpenTelemetry\Factory\Trace\Processor\TraceProcessorFactoryInterface;
+use Hyperf\OpenTelemetry\Factory\Trace\Sampler\SamplerFactory;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Trace\NoopTracerProvider;
 use OpenTelemetry\SDK\Trace\SamplerInterface;
@@ -13,9 +16,6 @@ use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use OpenTelemetry\SDK\Trace\SpanProcessorInterface;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\SDK\Trace\TracerProviderInterface;
-use Hyperf\OpenTelemetry\Factory\Trace\Exporter\TraceExporterFactoryInterface;
-use Hyperf\OpenTelemetry\Factory\Trace\Processor\TraceProcessorFactoryInterface;
-use Hyperf\OpenTelemetry\Factory\Trace\Sampler\SamplerFactory;
 
 class TracerProviderFactory
 {

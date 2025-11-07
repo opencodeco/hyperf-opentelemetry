@@ -7,6 +7,10 @@ namespace Tests\Unit\Aspect\Aws;
 use Exception;
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Di\Aop\ProceedingJoinPoint;
+use Hyperf\OpenTelemetry\Aspect\Aws\DynamoDbClientAspect;
+use Hyperf\OpenTelemetry\Instrumentation;
+use Hyperf\OpenTelemetry\Support\SpanScope;
+use Hyperf\OpenTelemetry\Switcher;
 use OpenTelemetry\API\Metrics\HistogramInterface;
 use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Trace\SpanKind;
@@ -16,10 +20,6 @@ use OpenTelemetry\SemConv\Attributes\ErrorAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\DbIncubatingAttributes;
 use OpenTelemetry\SemConv\Metrics\DbMetrics;
 use PHPUnit\Framework\TestCase;
-use Hyperf\OpenTelemetry\Aspect\Aws\DynamoDbClientAspect;
-use Hyperf\OpenTelemetry\Instrumentation;
-use Hyperf\OpenTelemetry\Support\SpanScope;
-use Hyperf\OpenTelemetry\Switcher;
 
 /**
  * @internal

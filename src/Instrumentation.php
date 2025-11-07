@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hyperf\OpenTelemetry;
 
+use Hyperf\OpenTelemetry\Support\SpanScope;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Metrics\MeterInterface;
@@ -11,7 +12,6 @@ use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\Context\Propagation\TextMapPropagatorInterface;
-use Hyperf\OpenTelemetry\Support\SpanScope;
 
 class Instrumentation
 {

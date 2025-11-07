@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Factory\Trace\Exporter;
 
+use Hyperf\OpenTelemetry\Factory\Trace\Exporter\StdoutTraceExporterFactory;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use PHPUnit\Framework\TestCase;
-use Hyperf\OpenTelemetry\Factory\Trace\Exporter\StdoutTraceExporterFactory;
 
 /**
  * @internal

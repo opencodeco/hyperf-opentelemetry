@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Factory\Metric\Exporter;
 
+use Hyperf\OpenTelemetry\Factory\Metric\Exporter\StdoutMetricExporterFactory;
 use OpenTelemetry\SDK\Metrics\MetricExporterInterface;
 use PHPUnit\Framework\TestCase;
-use Hyperf\OpenTelemetry\Factory\Metric\Exporter\StdoutMetricExporterFactory;
 
 /**
  * @internal

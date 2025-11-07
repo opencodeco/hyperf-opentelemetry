@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Hyperf\OpenTelemetry\Aspect\Aws;
 
 use Hyperf\Di\Aop\ProceedingJoinPoint;
+use Hyperf\OpenTelemetry\Aspect\AbstractAspect;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\SemConv\Attributes\ErrorAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\MessagingIncubatingAttributes as Msg;
-use Hyperf\OpenTelemetry\Aspect\AbstractAspect;
 use Throwable;
 
 class SqsClientAspect extends AbstractAspect

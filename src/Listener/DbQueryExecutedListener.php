@@ -7,13 +7,13 @@ namespace Hyperf\OpenTelemetry\Listener;
 use Hyperf\Collection\Arr;
 use Hyperf\Database\Events\QueryExecuted;
 use Hyperf\Event\Contract\ListenerInterface;
+use Hyperf\OpenTelemetry\Support\AbstractInstrumenter;
 use Hyperf\Stringable\Str;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\SemConv\Attributes\DbAttributes;
 use OpenTelemetry\SemConv\Attributes\ErrorAttributes;
 use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 use OpenTelemetry\SemConv\Metrics\DbMetrics;
-use Hyperf\OpenTelemetry\Support\AbstractInstrumenter;
 use Throwable;
 
 class DbQueryExecutedListener extends AbstractInstrumenter implements ListenerInterface

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Hyperf\OpenTelemetry\Middleware;
 
-use Hyperf\Stringable\Str;
 use Hyperf\OpenTelemetry\Support\AbstractInstrumenter;
+use Hyperf\Stringable\Str;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 

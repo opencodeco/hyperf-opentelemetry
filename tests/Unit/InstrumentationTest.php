@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
+use Hyperf\OpenTelemetry\Instrumentation;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\API\Metrics\Noop\NoopMeter;
@@ -18,7 +19,6 @@ use OpenTelemetry\Context\Propagation\NoopTextMapPropagator;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SemConv\Attributes\HttpAttributes;
 use PHPUnit\Framework\TestCase;
-use Hyperf\OpenTelemetry\Instrumentation;
 
 /**
  * @internal

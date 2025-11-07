@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Factory\Log\Processor;
 
+use Hyperf\OpenTelemetry\Factory\Log\Processor\SimpleLogProcessorFactory;
 use OpenTelemetry\SDK\Logs\LogRecordExporterInterface;
 use OpenTelemetry\SDK\Logs\LogRecordProcessorInterface;
 use PHPUnit\Framework\TestCase;
-use Hyperf\OpenTelemetry\Factory\Log\Processor\SimpleLogProcessorFactory;
 
 /**
  * @internal

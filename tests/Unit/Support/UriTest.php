@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Support;
 
-use PHPUnit\Framework\TestCase;
 use Hyperf\OpenTelemetry\Support\Uri;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @internal

@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Tests\Unit\Middleware;
 
 use Hyperf\Contract\ConfigInterface;
+use Hyperf\OpenTelemetry\Instrumentation;
+use Hyperf\OpenTelemetry\Middleware\MetricMiddleware;
+use Hyperf\OpenTelemetry\Switcher;
 use OpenTelemetry\API\Metrics\HistogramInterface;
 use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\SemConv\Attributes\ErrorAttributes;
 use OpenTelemetry\SemConv\Attributes\HttpAttributes;
 use OpenTelemetry\SemConv\Metrics\HttpMetrics;
 use PHPUnit\Framework\TestCase;
-use Hyperf\OpenTelemetry\Instrumentation;
-use Hyperf\OpenTelemetry\Middleware\MetricMiddleware;
-use Hyperf\OpenTelemetry\Switcher;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;

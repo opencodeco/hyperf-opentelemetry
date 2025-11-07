@@ -2,23 +2,25 @@
 
 declare(strict_types=1);
 
+use Hyperf\OpenTelemetry\Factory\Log\Exporter\OtlpHttpLogExporterFactory;
+use Hyperf\OpenTelemetry\Factory\Log\Exporter\StdoutLogExporterFactory;
+use Hyperf\OpenTelemetry\Factory\Log\Processor\BatchLogProcessorFactory;
+use Hyperf\OpenTelemetry\Factory\Log\Processor\SimpleLogProcessorFactory;
+use Hyperf\OpenTelemetry\Factory\Metric\Exporter\OtlpGrpcMetricExporterFactory;
+use Hyperf\OpenTelemetry\Factory\Metric\Exporter\OtlpHttpMetricExporterFactory;
+use Hyperf\OpenTelemetry\Factory\Metric\Exporter\StdoutMetricExporterFactory;
+use Hyperf\OpenTelemetry\Factory\Trace\Exporter\OtlpGrpcTraceExporterFactory;
+use Hyperf\OpenTelemetry\Factory\Trace\Exporter\OtlpHttpTraceExporterFactory;
+use Hyperf\OpenTelemetry\Factory\Trace\Exporter\StdoutTraceExporterFactory;
+use Hyperf\OpenTelemetry\Factory\Trace\Processor\BatchSpanProcessorFactory;
+use Hyperf\OpenTelemetry\Factory\Trace\Processor\SimpleSpanProcessorFactory;
+use Hyperf\OpenTelemetry\Factory\Trace\Sampler\AlwaysOnSamplerFactory;
 use OpenTelemetry\SDK\Common\Export\TransportFactoryInterface;
 use OpenTelemetry\SDK\Logs\Processor\BatchLogRecordProcessor;
 use OpenTelemetry\SDK\Metrics\Data\Temporality;
 use OpenTelemetry\SDK\Trace\SpanProcessor\BatchSpanProcessor;
 use OpenTelemetry\SemConv\Attributes\ServiceAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\ServiceIncubatingAttributes;
-use Hyperf\OpenTelemetry\Factory\Log\Exporter\OtlpHttpLogExporterFactory;
-use Hyperf\OpenTelemetry\Factory\Log\Exporter\StdoutLogExporterFactory;
-use Hyperf\OpenTelemetry\Factory\Log\Processor\BatchLogProcessorFactory;
-use Hyperf\OpenTelemetry\Factory\Log\Processor\SimpleLogProcessorFactory;
-use Hyperf\OpenTelemetry\Factory\Metric\Exporter\OtlpHttpMetricExporterFactory;
-use Hyperf\OpenTelemetry\Factory\Metric\Exporter\StdoutMetricExporterFactory;
-use Hyperf\OpenTelemetry\Factory\Trace\Exporter\OtlpHttpTraceExporterFactory;
-use Hyperf\OpenTelemetry\Factory\Trace\Exporter\StdoutTraceExporterFactory;
-use Hyperf\OpenTelemetry\Factory\Trace\Processor\BatchSpanProcessorFactory;
-use Hyperf\OpenTelemetry\Factory\Trace\Processor\SimpleSpanProcessorFactory;
-use Hyperf\OpenTelemetry\Factory\Trace\Sampler\AlwaysOnSamplerFactory;
 
 use function Hyperf\Support\env;
 
@@ -42,6 +44,19 @@ return [
                 'options' => [
                     'endpoint' => env('OTEL_TRACES_ENDPOINT', 'http://localhost:4318/v1/traces'),
                     'content_type' => 'application/x-protobuf',
+                    'compression' => TransportFactoryInterface::COMPRESSION_GZIP,
+                    'headers' => [],
+                    'timeout' => (float) env('OTEL_TRACES_TIMEOUT_SECONDS', 3),
+                    'retry' => [
+                        'delay_ms' => (int) env('OTEL_TRACES_RETRY_DELAY_MS', 100),
+                        'max_retries' => (int) env('OTEL_TRACES_RETRY_MAX', 2),
+                    ],
+                ],
+            ],
+            'otlp_grpc' => [
+                'driver' => OtlpGrpcTraceExporterFactory::class,
+                'options' => [
+                    'endpoint' => env('OTEL_TRACES_ENDPOINT', 'http://localhost:4317/v1/traces'),
                     'compression' => TransportFactoryInterface::COMPRESSION_GZIP,
                     'headers' => [],
                     'timeout' => (float) env('OTEL_TRACES_TIMEOUT_SECONDS', 3),
@@ -89,6 +104,20 @@ return [
                     'temporality' => Temporality::DELTA,
                     'endpoint' => env('OTEL_METRICS_ENDPOINT', 'http://localhost:4318/v1/metrics'),
                     'content_type' => 'application/x-protobuf',
+                    'compression' => TransportFactoryInterface::COMPRESSION_GZIP,
+                    'headers' => [],
+                    'timeout' => (float) env('OTEL_METRICS_TIMEOUT_SECONDS', 3),
+                    'retry' => [
+                        'delay_ms' => (int) env('OTEL_METRICS_RETRY_DELAY_MS', 100),
+                        'max_retries' => (int) env('OTEL_METRICS_RETRY_MAX', 2),
+                    ],
+                ],
+            ],
+            'otlp_grpc' => [
+                'driver' => OtlpGrpcMetricExporterFactory::class,
+                'options' => [
+                    'temporality' => Temporality::DELTA,
+                    'endpoint' => env('OTEL_METRICS_ENDPOINT', 'http://localhost:4317/v1/metrics'),
                     'compression' => TransportFactoryInterface::COMPRESSION_GZIP,
                     'headers' => [],
                     'timeout' => (float) env('OTEL_METRICS_TIMEOUT_SECONDS', 3),

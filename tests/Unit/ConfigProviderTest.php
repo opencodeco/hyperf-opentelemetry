@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
-use OpenTelemetry\SDK\Resource\ResourceInfo;
-use PHPUnit\Framework\TestCase;
 use Hyperf\OpenTelemetry\ConfigProvider;
 use Hyperf\OpenTelemetry\Factory\CachedInstrumentationFactory;
 use Hyperf\OpenTelemetry\Factory\OTelResourceFactory;
+use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\SDK\Resource\ResourceInfo;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @internal

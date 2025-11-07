@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Hyperf\OpenTelemetry\Middleware;
 
+use Hyperf\OpenTelemetry\Support\Uri;
 use OpenTelemetry\SemConv\Attributes\ErrorAttributes;
 use OpenTelemetry\SemConv\Attributes\HttpAttributes;
 use OpenTelemetry\SemConv\Metrics\HttpMetrics;
-use Hyperf\OpenTelemetry\Support\Uri;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;

@@ -6,11 +6,11 @@ namespace Tests\Unit\Factory;
 
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Contract\ContainerInterface;
+use Hyperf\OpenTelemetry\Factory\OTelResourceFactory;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SemConv\Attributes\ServiceAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\ServiceIncubatingAttributes;
 use PHPUnit\Framework\TestCase;
-use Hyperf\OpenTelemetry\Factory\OTelResourceFactory;
 
 /**
  * @internal

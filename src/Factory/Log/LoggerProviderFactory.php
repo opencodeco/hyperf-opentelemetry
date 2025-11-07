@@ -6,14 +6,14 @@ namespace Hyperf\OpenTelemetry\Factory\Log;
 
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Contract\ContainerInterface;
+use Hyperf\OpenTelemetry\Factory\Log\Exporter\LogExporterFactoryInterface;
+use Hyperf\OpenTelemetry\Factory\Log\Processor\LogProcessorFactoryInterface;
 use OpenTelemetry\SDK\Logs\LoggerProvider;
 use OpenTelemetry\SDK\Logs\LoggerProviderInterface;
 use OpenTelemetry\SDK\Logs\LogRecordExporterInterface;
 use OpenTelemetry\SDK\Logs\LogRecordProcessorInterface;
 use OpenTelemetry\SDK\Logs\NoopLoggerProvider;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
-use Hyperf\OpenTelemetry\Factory\Log\Exporter\LogExporterFactoryInterface;
-use Hyperf\OpenTelemetry\Factory\Log\Processor\LogProcessorFactoryInterface;
 
 class LoggerProviderFactory
 {

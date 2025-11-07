@@ -8,6 +8,10 @@ use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Promise\PromiseInterface;
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Di\Aop\ProceedingJoinPoint;
+use Hyperf\OpenTelemetry\Aspect\GuzzleClientAspect;
+use Hyperf\OpenTelemetry\Instrumentation;
+use Hyperf\OpenTelemetry\Support\SpanScope;
+use Hyperf\OpenTelemetry\Switcher;
 use OpenTelemetry\API\Metrics\HistogramInterface;
 use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Trace\SpanKind;
@@ -21,10 +25,6 @@ use OpenTelemetry\SemConv\Attributes\UserAgentAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\UrlIncubatingAttributes;
 use PHPUnit\Framework\TestCase;
-use Hyperf\OpenTelemetry\Aspect\GuzzleClientAspect;
-use Hyperf\OpenTelemetry\Instrumentation;
-use Hyperf\OpenTelemetry\Support\SpanScope;
-use Hyperf\OpenTelemetry\Switcher;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
@@ -217,6 +217,7 @@ class GuzzleClientAspectTest extends TestCase
 
         $this->assertEquals($this->promise, $result);
     }
+
     public function testProcessWithUriMaskAndSuccessRequest(): void
     {
         $this->configureRequestMock(
