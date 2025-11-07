@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Hyperf\OpenTelemetry\Factory\Metric\Exporter;
 
 use Hyperf\Contract\ConfigInterface;
+use InvalidArgumentException;
 use OpenTelemetry\Contrib\Grpc\GrpcTransportFactory;
+use OpenTelemetry\Contrib\Otlp\ContentTypes;
 use OpenTelemetry\Contrib\Otlp\MetricExporter;
 use OpenTelemetry\SDK\Common\Export\TransportFactoryInterface;
 use OpenTelemetry\SDK\Metrics\Data\Temporality;
@@ -20,6 +22,10 @@ class OtlpGrpcMetricExporterFactory implements MetricExporterFactoryInterface
 
     public function make(): MetricExporterInterface
     {
+        if (! extension_loaded('grpc')) {
+            throw new InvalidArgumentException('The gRPC extension is not loaded.');
+        }
+
         $options = $this->config->get('open-telemetry.metrics.exporters.otlp_grpc.options', []);
 
         return new MetricExporter(

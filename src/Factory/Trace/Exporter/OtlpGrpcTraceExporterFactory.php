@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Hyperf\OpenTelemetry\Factory\Trace\Exporter;
 
 use Hyperf\Contract\ConfigInterface;
+use InvalidArgumentException;
 use OpenTelemetry\Contrib\Grpc\GrpcTransportFactory;
 use OpenTelemetry\Contrib\Otlp\SpanExporter;
 use OpenTelemetry\SDK\Common\Export\TransportFactoryInterface;
@@ -19,6 +20,10 @@ class OtlpGrpcTraceExporterFactory implements TraceExporterFactoryInterface
 
     public function make(): SpanExporterInterface
     {
+        if (! extension_loaded('grpc')) {
+            throw new InvalidArgumentException('The gRPC extension is not loaded.');
+        }
+
         $options = $this->config->get('open-telemetry.traces.exporters.otlp_grpc.options', []);
 
         return new SpanExporter(
