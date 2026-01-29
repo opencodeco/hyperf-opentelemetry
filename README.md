@@ -17,6 +17,7 @@ This library enables instrumentation of Hyperf-based applications for exporting 
   - Redis
   - Guzzle
   - SQL queries (Hyperf\Database)
+  - MongoDB (GoTask)
 - ♻️ Integration with Swoole ContextStorage
 
 ---
