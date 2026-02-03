@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Hyperf\OpenTelemetry\Aspect\Aws;
 
 use Hyperf\Di\Aop\ProceedingJoinPoint;
+use Hyperf\OpenTelemetry\Aspect\AbstractAspect;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\SemConv\Attributes\ErrorAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\MessagingIncubatingAttributes as Msg;
-use Hyperf\OpenTelemetry\Aspect\AbstractAspect;
 use Throwable;
 
 class SqsClientAspect extends AbstractAspect
@@ -33,7 +33,7 @@ class SqsClientAspect extends AbstractAspect
 
         $operationType = $this->resolveOperationType($operation);
 
-        $queueName = $this->extractQueueName($input['QueueUrl'] ?? 'unknown');
+        $queueName = $input['QueueName'] ?? $this->extractQueueName($input['QueueUrl'] ?? 'unknown');
         $queueUrl = $input['QueueUrl'] ?? 'unknown';
 
         $spanKind = ($operationType == 'send') ? SpanKind::KIND_PRODUCER : SpanKind::KIND_CLIENT;
@@ -114,6 +114,7 @@ class SqsClientAspect extends AbstractAspect
             'receivemessage' => Msg::MESSAGING_OPERATION_TYPE_VALUE_RECEIVE,
             'createqueue' => Msg::MESSAGING_OPERATION_TYPE_VALUE_CREATE,
             'deletemessage', 'deletemessagebatch', 'purgequeue' => Msg::MESSAGING_OPERATION_TYPE_VALUE_SETTLE,
+            'getqueueurl' => 'describe',
             default => 'unknown',
         };
     }

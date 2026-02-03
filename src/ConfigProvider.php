@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Hyperf\OpenTelemetry;
 
+use Hyperf\OpenTelemetry\Factory\CachedInstrumentationFactory;
 use Hyperf\OpenTelemetry\Factory\Log\LoggerProviderFactory;
 use Hyperf\OpenTelemetry\Factory\Metric\MeterProviderFactory;
+use Hyperf\OpenTelemetry\Factory\OTelResourceFactory;
 use Hyperf\OpenTelemetry\Factory\Trace\TracerProviderFactory;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\SDK\Logs\LoggerProviderInterface;
@@ -52,6 +54,7 @@ class ConfigProvider
                 Aspect\Aws\DynamoDbClientAspect::class,
                 Aspect\Aws\SnsClientAspect::class,
                 Aspect\Aws\SqsClientAspect::class,
+                Aspect\MongoAspect::class,
             ],
             'publish' => [
                 [

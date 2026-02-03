@@ -7,6 +7,10 @@ namespace Tests\Unit\Aspect\Aws;
 use Exception;
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Di\Aop\ProceedingJoinPoint;
+use Hyperf\OpenTelemetry\Aspect\Aws\SqsClientAspect;
+use Hyperf\OpenTelemetry\Instrumentation;
+use Hyperf\OpenTelemetry\Support\SpanScope;
+use Hyperf\OpenTelemetry\Switcher;
 use OpenTelemetry\API\Metrics\HistogramInterface;
 use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Trace\SpanKind;
@@ -14,10 +18,6 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\SemConv\Attributes\ErrorAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\MessagingIncubatingAttributes as MsgAttributes;
 use PHPUnit\Framework\TestCase;
-use Hyperf\OpenTelemetry\Aspect\Aws\SqsClientAspect;
-use Hyperf\OpenTelemetry\Instrumentation;
-use Hyperf\OpenTelemetry\Support\SpanScope;
-use Hyperf\OpenTelemetry\Switcher;
 
 /**
  * @internal
@@ -160,6 +160,76 @@ class SqsClientAspectTest extends TestCase
                     MsgAttributes::MESSAGING_OPERATION_TYPE => MsgAttributes::MESSAGING_OPERATION_TYPE_VALUE_SEND,
                     MsgAttributes::MESSAGING_OPERATION_NAME => 'SendMessage',
                     'aws.sqs.queue.url' => 'https://sqs.us-east-1.amazonaws.com/123456789012/notifications',
+                ])
+            )
+            ->willReturn($this->spanScope);
+
+        $this->spanScope->expects($this->once())
+            ->method('setAttribute')
+            ->with(MsgAttributes::MESSAGING_MESSAGE_ID, 'msg-123');
+
+        $this->spanScope->expects($this->once())
+            ->method('setStatus')
+            ->with(StatusCode::STATUS_OK);
+
+        $this->spanScope->expects($this->once())->method('end');
+
+        // Metric
+        $this->meter->expects($this->once())
+            ->method('createHistogram')
+            ->with('messaging.client.sent.messages', 'ms')
+            ->willReturn($this->histogram);
+
+        $this->histogram->expects($this->once())
+            ->method('record')
+            ->with(
+                $this->isType('float'),
+                $this->equalTo([
+                    MsgAttributes::MESSAGING_SYSTEM => MsgAttributes::MESSAGING_SYSTEM_VALUE_AWS_SQS,
+                    MsgAttributes::MESSAGING_OPERATION_NAME => 'SendMessage',
+                    MsgAttributes::MESSAGING_DESTINATION_NAME => 'notifications',
+                    MsgAttributes::MESSAGING_OPERATION_TYPE => MsgAttributes::MESSAGING_OPERATION_TYPE_VALUE_SEND,
+                ])
+            );
+
+        $expectedResult = ['MessageId' => 'msg-123'];
+        $this->proceedingJoinPoint->expects($this->once())
+            ->method('process')
+            ->willReturn($expectedResult);
+
+        $result = $aspect->process($this->proceedingJoinPoint);
+
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    public function testProcessWithQueueName(): void
+    {
+        $command = $this->buildCommand(
+            'SendMessage',
+            ['QueueName' => 'notifications']
+        );
+
+        $this->proceedingJoinPoint->arguments = ['keys' => ['command' => $command]];
+
+        $aspect = new SqsClientAspect(
+            $this->config,
+            $this->instrumentation,
+            $this->switcher
+        );
+
+        // Span
+        $this->instrumentation
+            ->expects($this->once())
+            ->method('startSpan')
+            ->with(
+                $this->equalTo('SQS send notifications'),
+                $this->equalTo(SpanKind::KIND_PRODUCER),
+                $this->equalTo([
+                    MsgAttributes::MESSAGING_SYSTEM => MsgAttributes::MESSAGING_SYSTEM_VALUE_AWS_SQS,
+                    MsgAttributes::MESSAGING_DESTINATION_NAME => 'notifications',
+                    MsgAttributes::MESSAGING_OPERATION_TYPE => MsgAttributes::MESSAGING_OPERATION_TYPE_VALUE_SEND,
+                    MsgAttributes::MESSAGING_OPERATION_NAME => 'SendMessage',
+                    'aws.sqs.queue.url' => 'unknown',
                 ])
             )
             ->willReturn($this->spanScope);
