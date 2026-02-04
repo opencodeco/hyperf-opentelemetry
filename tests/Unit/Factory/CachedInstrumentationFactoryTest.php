@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Tests\Unit\Factory;
 
 use Hyperf\Contract\ContainerInterface;
+use Hyperf\OpenTelemetry\Factory\CachedInstrumentationFactory;
+use Hyperf\OpenTelemetry\Factory\SDKBuilder;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ContextStorage;
 use OpenTelemetry\Contrib\Context\Swoole\SwooleContextStorage;
 use PHPUnit\Framework\TestCase;
-use Hyperf\OpenTelemetry\Factory\CachedInstrumentationFactory;
-use Hyperf\OpenTelemetry\Factory\SDKBuilder;
 
 /**
  * @internal

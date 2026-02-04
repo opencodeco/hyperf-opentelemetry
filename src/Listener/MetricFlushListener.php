@@ -21,12 +21,12 @@ class MetricFlushListener extends AbstractFlushListener implements ListenerInter
         parent::__construct($container, $config, $logger);
     }
 
-    function flush(): void
+    public function flush(): void
     {
         $this->meterProvider->forceFlush();
     }
 
-    function exportInterval(): float
+    public function exportInterval(): float
     {
         return (float) $this->config->get('open-telemetry.metrics.export_interval', 5);
     }

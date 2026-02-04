@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Support;
 
 use Exception;
+use Hyperf\OpenTelemetry\Support\SpanScope;
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\ContextInterface;
@@ -13,7 +14,6 @@ use OpenTelemetry\SemConv\Attributes\CodeAttributes;
 use OpenTelemetry\SemConv\Attributes\ExceptionAttributes;
 use OpenTelemetry\SemConv\Attributes\HttpAttributes;
 use PHPUnit\Framework\TestCase;
-use Hyperf\OpenTelemetry\Support\SpanScope;
 
 /**
  * @internal

@@ -8,14 +8,12 @@ use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use Hyperf\Context\ApplicationContext;
 use Hyperf\Contract\ConfigInterface;
-use Hyperf\Guzzle\ClientFactory;
 use Hyperf\Guzzle\CoroutineHandler;
 use Hyperf\Guzzle\PoolHandler;
 use Hyperf\OpenTelemetry\Support\HyperfGuzzle;
 use Mockery as m;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
-use ReflectionAttribute;
 use ReflectionProperty;
 
 /**

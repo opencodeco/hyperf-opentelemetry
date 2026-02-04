@@ -6,13 +6,13 @@ namespace Hyperf\OpenTelemetry\Aspect\Aws;
 
 use Hyperf\Di\Aop\ProceedingJoinPoint;
 use Hyperf\Di\Exception\Exception;
+use Hyperf\OpenTelemetry\Aspect\AbstractAspect;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\SemConv\Attributes\DbAttributes;
 use OpenTelemetry\SemConv\Attributes\ErrorAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\DbIncubatingAttributes as DbIncubatingAttr;
 use OpenTelemetry\SemConv\Metrics\DbMetrics;
-use Hyperf\OpenTelemetry\Aspect\AbstractAspect;
 use Throwable;
 
 class DynamoDbClientAspect extends AbstractAspect

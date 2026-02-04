@@ -8,6 +8,9 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Promise\PromiseInterface;
 use Hyperf\Di\Aop\ProceedingJoinPoint;
 use Hyperf\Di\Exception\Exception;
+use Hyperf\OpenTelemetry\Propagator\HeadersPropagator;
+use Hyperf\OpenTelemetry\Support\SpanScope;
+use Hyperf\OpenTelemetry\Support\Uri;
 use Hyperf\Stringable\Str;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
@@ -19,9 +22,6 @@ use OpenTelemetry\SemConv\Attributes\UserAgentAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\HttpIncubatingAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\UrlIncubatingAttributes;
 use OpenTelemetry\SemConv\Metrics\HttpMetrics;
-use Hyperf\OpenTelemetry\Propagator\HeadersPropagator;
-use Hyperf\OpenTelemetry\Support\SpanScope;
-use Hyperf\OpenTelemetry\Support\Uri;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
@@ -65,7 +65,7 @@ class GuzzleClientAspect extends AbstractAspect
 
         if ($this->isTracingEnabled) {
             $scope = $this->instrumentation->startSpan(
-                name: $method . ' ' .  Uri::sanitize(
+                name: $method . ' ' . Uri::sanitize(
                     $request->getUri()->getPath(),
                     $this->config->get('open-telemetry.traces.uri_mask', [])
                 ),

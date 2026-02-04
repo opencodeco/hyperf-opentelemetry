@@ -21,12 +21,12 @@ class TraceFlushListener extends AbstractFlushListener implements ListenerInterf
         parent::__construct($container, $config, $logger);
     }
 
-    function flush(): void
+    public function flush(): void
     {
         $this->tracerProvider->forceFlush();
     }
 
-    function exportInterval(): float
+    public function exportInterval(): float
     {
         return (float) $this->config->get('open-telemetry.traces.export_interval', 5);
     }

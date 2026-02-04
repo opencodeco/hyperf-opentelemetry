@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Tests\Unit\Factory\Trace\Exporter;
 
 use Hyperf\Contract\ConfigInterface;
+use Hyperf\OpenTelemetry\Factory\Trace\Exporter\OtlpHttpTraceExporterFactory;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use PHPUnit\Framework\TestCase;
-use Hyperf\OpenTelemetry\Factory\Trace\Exporter\OtlpHttpTraceExporterFactory;
 
 /**
  * @internal

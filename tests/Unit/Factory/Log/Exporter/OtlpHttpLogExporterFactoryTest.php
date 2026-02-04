@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Tests\Unit\Factory\Log\Exporter;
 
 use Hyperf\Contract\ConfigInterface;
+use Hyperf\OpenTelemetry\Factory\Log\Exporter\OtlpHttpLogExporterFactory;
 use OpenTelemetry\SDK\Logs\LogRecordExporterInterface;
 use PHPUnit\Framework\TestCase;
-use Hyperf\OpenTelemetry\Factory\Log\Exporter\OtlpHttpLogExporterFactory;
 
 /**
  * @internal

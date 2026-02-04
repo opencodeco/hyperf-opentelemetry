@@ -42,9 +42,9 @@ abstract class AbstractFlushListener implements ListenerInterface
         ];
     }
 
-    abstract function flush(): void;
+    abstract public function flush(): void;
 
-    abstract function exportInterval() :float;
+    abstract public function exportInterval(): float;
 
     public function process(object $event): void
     {

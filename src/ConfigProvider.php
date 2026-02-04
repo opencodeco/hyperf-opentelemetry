@@ -9,15 +9,13 @@ use Hyperf\OpenTelemetry\Factory\Log\LoggerProviderFactory;
 use Hyperf\OpenTelemetry\Factory\Metric\MeterProviderFactory;
 use Hyperf\OpenTelemetry\Factory\OTelResourceFactory;
 use Hyperf\OpenTelemetry\Factory\Trace\TracerProviderFactory;
+use Hyperf\OpenTelemetry\Support\HyperfGuzzle;
 use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
+use OpenTelemetry\SDK\Common\Http\Psr\Client\Discovery;
+use OpenTelemetry\SDK\Common\Http\Psr\Client\Discovery\Guzzle;
 use OpenTelemetry\SDK\Logs\LoggerProviderInterface;
 use OpenTelemetry\SDK\Metrics\MeterProviderInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
-use Hyperf\OpenTelemetry\Factory\CachedInstrumentationFactory;
-use Hyperf\OpenTelemetry\Factory\OTelResourceFactory;
-use Hyperf\OpenTelemetry\Support\HyperfGuzzle;
-use OpenTelemetry\SDK\Common\Http\Psr\Client\Discovery;
-use OpenTelemetry\SDK\Common\Http\Psr\Client\Discovery\Guzzle;
 use OpenTelemetry\SDK\Trace\TracerProviderInterface;
 
 class ConfigProvider

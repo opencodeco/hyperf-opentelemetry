@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Hyperf\OpenTelemetry\Aspect;
 
 use Hyperf\Di\Aop\ProceedingJoinPoint;
-use Hyperf\OpenTelemetry\Aspect\AbstractAspect;
 use Hyperf\Stringable\Str;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;

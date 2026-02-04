@@ -6,14 +6,14 @@ namespace Tests\Unit\Factory\Log;
 
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Contract\ContainerInterface;
+use Hyperf\OpenTelemetry\Factory\Log\Exporter\LogExporterFactoryInterface;
+use Hyperf\OpenTelemetry\Factory\Log\LoggerProviderFactory;
+use Hyperf\OpenTelemetry\Factory\Log\Processor\LogProcessorFactoryInterface;
 use OpenTelemetry\SDK\Logs\LoggerProviderInterface;
 use OpenTelemetry\SDK\Logs\LogRecordExporterInterface;
 use OpenTelemetry\SDK\Logs\LogRecordProcessorInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use PHPUnit\Framework\TestCase;
-use Hyperf\OpenTelemetry\Factory\Log\Exporter\LogExporterFactoryInterface;
-use Hyperf\OpenTelemetry\Factory\Log\LoggerProviderFactory;
-use Hyperf\OpenTelemetry\Factory\Log\Processor\LogProcessorFactoryInterface;
 
 /**
  * @internal

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Propagator;
 
-use PHPUnit\Framework\TestCase;
 use Hyperf\OpenTelemetry\Propagator\HeadersPropagator;
+use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
 
 /**

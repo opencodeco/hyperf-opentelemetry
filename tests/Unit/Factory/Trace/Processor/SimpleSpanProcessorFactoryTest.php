@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Factory\Trace\Processor;
 
+use Hyperf\OpenTelemetry\Factory\Trace\Processor\SimpleSpanProcessorFactory;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\SpanProcessorInterface;
 use PHPUnit\Framework\TestCase;
-use Hyperf\OpenTelemetry\Factory\Trace\Processor\SimpleSpanProcessorFactory;
 
 /**
  * @internal
