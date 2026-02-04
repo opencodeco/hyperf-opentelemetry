@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Tests\Unit\Factory\Metric\Exporter;
 
 use Hyperf\Contract\ConfigInterface;
+use Hyperf\OpenTelemetry\Factory\Metric\Exporter\OtlpHttpMetricExporterFactory;
 use OpenTelemetry\SDK\Metrics\Data\Temporality;
 use OpenTelemetry\SDK\Metrics\MetricExporterInterface;
 use PHPUnit\Framework\TestCase;
-use Hyperf\OpenTelemetry\Factory\Metric\Exporter\OtlpHttpMetricExporterFactory;
 
 /**
  * @internal

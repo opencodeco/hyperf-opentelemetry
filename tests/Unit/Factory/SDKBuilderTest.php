@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Factory;
 
 use Hyperf\Contract\ConfigInterface;
+use Hyperf\OpenTelemetry\Factory\SDKBuilder;
 use OpenTelemetry\API\Globals;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\SDK\Logs\LoggerProviderInterface;
@@ -14,7 +15,6 @@ use OpenTelemetry\SDK\Metrics\NoopMeterProvider;
 use OpenTelemetry\SDK\Trace\NoopTracerProvider;
 use OpenTelemetry\SDK\Trace\TracerProviderInterface;
 use PHPUnit\Framework\TestCase;
-use Hyperf\OpenTelemetry\Factory\SDKBuilder;
 
 /**
  * @internal

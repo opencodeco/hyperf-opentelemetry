@@ -9,6 +9,10 @@ use Hyperf\Contract\ConfigInterface;
 use Hyperf\Database\Connection;
 use Hyperf\Database\Events\QueryExecuted;
 use Hyperf\Database\Events\StatementPrepared;
+use Hyperf\OpenTelemetry\Instrumentation;
+use Hyperf\OpenTelemetry\Listener\DbQueryExecutedListener;
+use Hyperf\OpenTelemetry\Support\SpanScope;
+use Hyperf\OpenTelemetry\Switcher;
 use OpenTelemetry\API\Metrics\HistogramInterface;
 use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Trace\SpanKind;
@@ -17,10 +21,6 @@ use OpenTelemetry\SemConv\Attributes\ErrorAttributes;
 use OpenTelemetry\SemConv\Attributes\ServerAttributes;
 use OpenTelemetry\SemConv\Metrics\DbMetrics;
 use PHPUnit\Framework\TestCase;
-use Hyperf\OpenTelemetry\Instrumentation;
-use Hyperf\OpenTelemetry\Listener\DbQueryExecutedListener;
-use Hyperf\OpenTelemetry\Support\SpanScope;
-use Hyperf\OpenTelemetry\Switcher;
 
 /**
  * @internal

@@ -6,10 +6,10 @@ namespace Tests\Unit\Factory\Metric;
 
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Contract\ContainerInterface;
+use Hyperf\OpenTelemetry\Factory\Metric\MeterProviderFactory;
 use OpenTelemetry\SDK\Metrics\MeterProviderInterface;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use PHPUnit\Framework\TestCase;
-use Hyperf\OpenTelemetry\Factory\Metric\MeterProviderFactory;
 
 /**
  * @internal

@@ -59,7 +59,7 @@ class SpanScope
         $this->span->setStatus($code, $description);
     }
 
-    public function setAttribute(string $key, null | array | bool | float | int | string $value): void
+    public function setAttribute(string $key, array | bool | float | int | string | null $value): void
     {
         $this->span->setAttribute($key, $value);
     }

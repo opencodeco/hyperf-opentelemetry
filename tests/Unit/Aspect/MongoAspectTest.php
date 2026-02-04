@@ -7,6 +7,7 @@ namespace Tests\Unit\Aspect;
 use Exception;
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Di\Aop\ProceedingJoinPoint;
+use Hyperf\GoTask\MongoClient\Collection;
 use Hyperf\OpenTelemetry\Aspect\MongoAspect;
 use Hyperf\OpenTelemetry\Instrumentation;
 use Hyperf\OpenTelemetry\Support\SpanScope;
@@ -20,6 +21,8 @@ use OpenTelemetry\SemConv\Attributes\ErrorAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\DbIncubatingAttributes;
 use OpenTelemetry\SemConv\Metrics\DbMetrics;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
+use ReflectionProperty;
 
 /**
  * @internal
@@ -56,7 +59,7 @@ class MongoAspectTest extends TestCase
 
         $this->instrumentation->method('meter')->willReturn($this->meter);
 
-        if (!class_exists('Hyperf\GoTask\MongoClient\Collection')) {
+        if (! class_exists('Hyperf\GoTask\MongoClient\Collection')) {
             eval('
                 namespace Hyperf\GoTask\MongoClient {
                     class Collection {
@@ -66,9 +69,9 @@ class MongoAspectTest extends TestCase
             ');
         }
 
-        $this->mongoCollection = new \Hyperf\GoTask\MongoClient\Collection();
+        $this->mongoCollection = new Collection();
 
-        $reflection = new \ReflectionProperty(\Hyperf\GoTask\MongoClient\Collection::class, 'collection');
+        $reflection = new ReflectionProperty(Collection::class, 'collection');
         $reflection->setAccessible(true);
         $reflection->setValue($this->mongoCollection, 'users');
 
@@ -193,7 +196,7 @@ class MongoAspectTest extends TestCase
         foreach ($methods as $method) {
             $instrumentation = $this->createMock(Instrumentation::class);
             $instrumentation->method('meter')->willReturn($this->meter);
-            
+
             $spanScope = $this->createMock(SpanScope::class);
             $spanScope->expects($this->once())->method('setStatus');
             $spanScope->expects($this->once())->method('end');
@@ -282,8 +285,8 @@ class MongoAspectTest extends TestCase
 
     public function testProcessWithDifferentCollectionName(): void
     {
-        $ordersCollection = new \Hyperf\GoTask\MongoClient\Collection();
-        $reflection = new \ReflectionProperty(\Hyperf\GoTask\MongoClient\Collection::class, 'collection');
+        $ordersCollection = new Collection();
+        $reflection = new ReflectionProperty(Collection::class, 'collection');
         $reflection->setAccessible(true);
         $reflection->setValue($ordersCollection, 'orders');
 
@@ -324,7 +327,7 @@ class MongoAspectTest extends TestCase
             $this->switcher
         );
 
-        $reflection = new \ReflectionClass($aspect);
+        $reflection = new ReflectionClass($aspect);
         $method = $reflection->getMethod('featureName');
         $method->setAccessible(true);
 

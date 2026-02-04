@@ -6,16 +6,16 @@ namespace Tests\Unit\Factory\Trace;
 
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\Contract\ContainerInterface;
+use Hyperf\OpenTelemetry\Factory\Trace\Exporter\TraceExporterFactoryInterface;
+use Hyperf\OpenTelemetry\Factory\Trace\Processor\TraceProcessorFactoryInterface;
+use Hyperf\OpenTelemetry\Factory\Trace\Sampler\SamplerFactory;
+use Hyperf\OpenTelemetry\Factory\Trace\TracerProviderFactory;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Trace\SamplerInterface;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use OpenTelemetry\SDK\Trace\SpanProcessorInterface;
 use OpenTelemetry\SDK\Trace\TracerProviderInterface;
 use PHPUnit\Framework\TestCase;
-use Hyperf\OpenTelemetry\Factory\Trace\Exporter\TraceExporterFactoryInterface;
-use Hyperf\OpenTelemetry\Factory\Trace\Processor\TraceProcessorFactoryInterface;
-use Hyperf\OpenTelemetry\Factory\Trace\Sampler\SamplerFactory;
-use Hyperf\OpenTelemetry\Factory\Trace\TracerProviderFactory;
 
 /**
  * @internal

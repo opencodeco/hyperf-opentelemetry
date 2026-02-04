@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Tests\Unit\Middleware;
 
 use Hyperf\Contract\ConfigInterface;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\TestCase;
 use Hyperf\OpenTelemetry\Instrumentation;
 use Hyperf\OpenTelemetry\Middleware\AbstractMiddleware;
 use Hyperf\OpenTelemetry\Switcher;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;

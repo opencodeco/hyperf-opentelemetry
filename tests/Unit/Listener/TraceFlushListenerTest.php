@@ -13,7 +13,6 @@ use Hyperf\Coordinator\Constants;
 use Hyperf\Coordinator\CoordinatorManager;
 use Hyperf\Coordinator\Timer;
 use Hyperf\Framework\Event\BeforeWorkerStart;
-use Hyperf\OpenTelemetry\Listener\MetricFlushListener;
 use Hyperf\OpenTelemetry\Listener\TraceFlushListener;
 use OpenTelemetry\SDK\Trace\TracerProviderInterface;
 use PHPUnit\Framework\TestCase;

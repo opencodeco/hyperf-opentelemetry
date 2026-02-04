@@ -2,12 +2,6 @@
 
 declare(strict_types=1);
 
-use OpenTelemetry\SDK\Common\Export\TransportFactoryInterface;
-use OpenTelemetry\SDK\Logs\Processor\BatchLogRecordProcessor;
-use OpenTelemetry\SDK\Metrics\Data\Temporality;
-use OpenTelemetry\SDK\Trace\SpanProcessor\BatchSpanProcessor;
-use OpenTelemetry\SemConv\Attributes\ServiceAttributes;
-use OpenTelemetry\SemConv\Incubating\Attributes\ServiceIncubatingAttributes;
 use Hyperf\OpenTelemetry\Factory\Log\Exporter\OtlpHttpLogExporterFactory;
 use Hyperf\OpenTelemetry\Factory\Log\Exporter\StdoutLogExporterFactory;
 use Hyperf\OpenTelemetry\Factory\Log\Processor\BatchLogProcessorFactory;
@@ -19,6 +13,12 @@ use Hyperf\OpenTelemetry\Factory\Trace\Exporter\StdoutTraceExporterFactory;
 use Hyperf\OpenTelemetry\Factory\Trace\Processor\BatchSpanProcessorFactory;
 use Hyperf\OpenTelemetry\Factory\Trace\Processor\SimpleSpanProcessorFactory;
 use Hyperf\OpenTelemetry\Factory\Trace\Sampler\AlwaysOnSamplerFactory;
+use OpenTelemetry\SDK\Common\Export\TransportFactoryInterface;
+use OpenTelemetry\SDK\Logs\Processor\BatchLogRecordProcessor;
+use OpenTelemetry\SDK\Metrics\Data\Temporality;
+use OpenTelemetry\SDK\Trace\SpanProcessor\BatchSpanProcessor;
+use OpenTelemetry\SemConv\Attributes\ServiceAttributes;
+use OpenTelemetry\SemConv\Incubating\Attributes\ServiceIncubatingAttributes;
 
 use function Hyperf\Support\env;
 
