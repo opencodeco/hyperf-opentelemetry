@@ -144,6 +144,15 @@ return [
         ],
     ],
 
+    'otlp_http' => [
+        'pool' => [
+            'min_connections' => 3,
+            'max_connections' => 30,
+            'connect_timeout' => 0.1,
+            'wait_timeout' => 0.1,
+        ],
+    ],
+
     'instrumentation' => [
         'enabled' => env('OTEL_INSTRUMENTATION_ENABLED', true),
 
