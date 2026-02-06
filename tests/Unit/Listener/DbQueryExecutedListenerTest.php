@@ -147,12 +147,19 @@ class DbQueryExecutedListenerTest extends TestCase
         // Metric
         $this->meter->expects($this->once())
             ->method('createHistogram')
-            ->with(DbMetrics::DB_CLIENT_OPERATION_DURATION, 'ms')
+            ->with(
+                DbMetrics::DB_CLIENT_OPERATION_DURATION,
+                's',
+                'Duration of database client operations.',
+                $this->callback(fn (array $advisory) => isset($advisory['ExplicitBucketBoundaries'])
+                    && is_array($advisory['ExplicitBucketBoundaries'])
+                    && count($advisory['ExplicitBucketBoundaries']) === 9)
+            )
             ->willReturn($this->histogram);
 
         $this->histogram->expects($this->once())
             ->method('record')
-            ->with(25.3, [
+            ->with(0.0253, [
                 DbAttributes::DB_SYSTEM_NAME => DbAttributes::DB_SYSTEM_NAME_VALUE_POSTGRESQL,
                 DbAttributes::DB_COLLECTION_NAME => 'users',
                 DbAttributes::DB_NAMESPACE => 'testdb',
@@ -212,12 +219,19 @@ class DbQueryExecutedListenerTest extends TestCase
         // Metric
         $this->meter->expects($this->once())
             ->method('createHistogram')
-            ->with(DbMetrics::DB_CLIENT_OPERATION_DURATION, 'ms')
+            ->with(
+                DbMetrics::DB_CLIENT_OPERATION_DURATION,
+                's',
+                'Duration of database client operations.',
+                $this->callback(fn (array $advisory) => isset($advisory['ExplicitBucketBoundaries'])
+                    && is_array($advisory['ExplicitBucketBoundaries'])
+                    && count($advisory['ExplicitBucketBoundaries']) === 9)
+            )
             ->willReturn($this->histogram);
 
         $this->histogram->expects($this->once())
             ->method('record')
-            ->with(25.3, [
+            ->with(0.0253, [
                 DbAttributes::DB_SYSTEM_NAME => DbAttributes::DB_SYSTEM_NAME_VALUE_MYSQL,
                 DbAttributes::DB_COLLECTION_NAME => 'users',
                 DbAttributes::DB_NAMESPACE => 'testdb',
@@ -261,13 +275,20 @@ class DbQueryExecutedListenerTest extends TestCase
         // Metric
         $this->meter->expects($this->once())
             ->method('createHistogram')
-            ->with(DbMetrics::DB_CLIENT_OPERATION_DURATION, 'ms')
+            ->with(
+                DbMetrics::DB_CLIENT_OPERATION_DURATION,
+                's',
+                'Duration of database client operations.',
+                $this->callback(fn (array $advisory) => isset($advisory['ExplicitBucketBoundaries'])
+                    && is_array($advisory['ExplicitBucketBoundaries'])
+                    && count($advisory['ExplicitBucketBoundaries']) === 9)
+            )
             ->willReturn($this->histogram);
 
         $this->histogram->expects($this->once())
             ->method('record')
             ->with(
-                10.5,
+                0.0105,
                 $this->callback(function ($attributes) {
                     $this->assertArrayHasKey(ErrorAttributes::ERROR_TYPE, $attributes);
 

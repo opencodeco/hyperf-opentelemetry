@@ -8,6 +8,7 @@ use Hyperf\Collection\Arr;
 use Hyperf\Database\Events\QueryExecuted;
 use Hyperf\Event\Contract\ListenerInterface;
 use Hyperf\OpenTelemetry\Support\AbstractInstrumenter;
+use Hyperf\OpenTelemetry\Support\MetricBoundaries;
 use Hyperf\Stringable\Str;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\SemConv\Attributes\DbAttributes;
@@ -91,10 +92,17 @@ class DbQueryExecutedListener extends AbstractInstrumenter implements ListenerIn
                 ];
             }
 
+            $durationInSeconds = $event->time / 1000;
+
             $this->instrumentation->meter()
-                ->createHistogram(DbMetrics::DB_CLIENT_OPERATION_DURATION, 'ms')
+                ->createHistogram(
+                    DbMetrics::DB_CLIENT_OPERATION_DURATION,
+                    's',
+                    'Duration of database client operations.',
+                    ['ExplicitBucketBoundaries' => MetricBoundaries::DB_DURATION]
+                )
                 ->record(
-                    $event->time,
+                    $durationInSeconds,
                     array_merge(
                         $metricErrors,
                         [

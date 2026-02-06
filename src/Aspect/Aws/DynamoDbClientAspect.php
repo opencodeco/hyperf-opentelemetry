@@ -7,6 +7,7 @@ namespace Hyperf\OpenTelemetry\Aspect\Aws;
 use Hyperf\Di\Aop\ProceedingJoinPoint;
 use Hyperf\Di\Exception\Exception;
 use Hyperf\OpenTelemetry\Aspect\AbstractAspect;
+use Hyperf\OpenTelemetry\Support\MetricBoundaries;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\SemConv\Attributes\DbAttributes;
@@ -78,12 +79,17 @@ class DynamoDbClientAspect extends AbstractAspect
             $scope?->end();
 
             if ($this->isMetricsEnabled) {
-                $duration = (microtime(true) - $start) * 1000;
+                $durationInSeconds = microtime(true) - $start;
 
                 $this->instrumentation->meter()
-                    ->createHistogram(DbMetrics::DB_CLIENT_OPERATION_DURATION, 'ms')
+                    ->createHistogram(
+                        DbMetrics::DB_CLIENT_OPERATION_DURATION,
+                        's',
+                        'Duration of database client operations.',
+                        ['ExplicitBucketBoundaries' => MetricBoundaries::DB_DURATION]
+                    )
                     ->record(
-                        $duration,
+                        $durationInSeconds,
                         array_merge(
                             $metricErrors,
                             [

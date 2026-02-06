@@ -198,7 +198,14 @@ class GuzzleClientAspectTest extends TestCase
         // Metric
         $this->meter->expects($this->once())
             ->method('createHistogram')
-            ->with('http.client.request.duration', 'ms')
+            ->with(
+                'http.client.request.duration',
+                's',
+                'Duration of HTTP client requests.',
+                $this->callback(fn (array $advisory) => isset($advisory['ExplicitBucketBoundaries'])
+                    && is_array($advisory['ExplicitBucketBoundaries'])
+                    && count($advisory['ExplicitBucketBoundaries']) === 14)
+            )
             ->willReturn($this->histogram);
 
         $this->histogram->expects($this->once())
@@ -288,7 +295,14 @@ class GuzzleClientAspectTest extends TestCase
         // Metric
         $this->meter->expects($this->once())
             ->method('createHistogram')
-            ->with('http.client.request.duration', 'ms')
+            ->with(
+                'http.client.request.duration',
+                's',
+                'Duration of HTTP client requests.',
+                $this->callback(fn (array $advisory) => isset($advisory['ExplicitBucketBoundaries'])
+                    && is_array($advisory['ExplicitBucketBoundaries'])
+                    && count($advisory['ExplicitBucketBoundaries']) === 14)
+            )
             ->willReturn($this->histogram);
 
         $this->histogram->expects($this->once())
@@ -378,7 +392,14 @@ class GuzzleClientAspectTest extends TestCase
         // Metric
         $this->meter->expects($this->once())
             ->method('createHistogram')
-            ->with('http.client.request.duration', 'ms')
+            ->with(
+                'http.client.request.duration',
+                's',
+                'Duration of HTTP client requests.',
+                $this->callback(fn (array $advisory) => isset($advisory['ExplicitBucketBoundaries'])
+                    && is_array($advisory['ExplicitBucketBoundaries'])
+                    && count($advisory['ExplicitBucketBoundaries']) === 14)
+            )
             ->willReturn($this->histogram);
 
         $this->histogram->expects($this->once())
@@ -458,7 +479,14 @@ class GuzzleClientAspectTest extends TestCase
 
         $this->meter->expects($this->once())
             ->method('createHistogram')
-            ->with('http.client.request.duration', 'ms')
+            ->with(
+                'http.client.request.duration',
+                's',
+                'Duration of HTTP client requests.',
+                $this->callback(fn (array $advisory) => isset($advisory['ExplicitBucketBoundaries'])
+                    && is_array($advisory['ExplicitBucketBoundaries'])
+                    && count($advisory['ExplicitBucketBoundaries']) === 14)
+            )
             ->willReturn($this->histogram);
 
         $this->histogram->expects($this->once())
