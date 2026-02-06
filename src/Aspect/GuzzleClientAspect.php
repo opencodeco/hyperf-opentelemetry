@@ -9,6 +9,7 @@ use GuzzleHttp\Promise\PromiseInterface;
 use Hyperf\Di\Aop\ProceedingJoinPoint;
 use Hyperf\Di\Exception\Exception;
 use Hyperf\OpenTelemetry\Propagator\HeadersPropagator;
+use Hyperf\OpenTelemetry\Support\MetricBoundaries;
 use Hyperf\OpenTelemetry\Support\SpanScope;
 use Hyperf\OpenTelemetry\Support\Uri;
 use Hyperf\Stringable\Str;
@@ -126,10 +127,15 @@ class GuzzleClientAspect extends AbstractAspect
             }
 
             if ($this->isMetricsEnabled) {
-                $duration = (microtime(true) - $start) * 1000;
+                $durationInSeconds = microtime(true) - $start;
                 $this->instrumentation->meter()
-                    ->createHistogram('http.client.request.duration', 'ms')
-                    ->record($duration, [
+                    ->createHistogram(
+                        HttpMetrics::HTTP_CLIENT_REQUEST_DURATION,
+                        's',
+                        'Duration of HTTP client requests.',
+                        ['ExplicitBucketBoundaries' => MetricBoundaries::HTTP_DURATION]
+                    )
+                    ->record($durationInSeconds, [
                         ServerAttributes::SERVER_ADDRESS => $request->getUri()->getHost(),
                         HttpAttributes::HTTP_REQUEST_METHOD => $request->getMethod(),
                         HttpAttributes::HTTP_RESPONSE_STATUS_CODE => $response->getStatusCode(),
@@ -153,11 +159,16 @@ class GuzzleClientAspect extends AbstractAspect
             }
 
             if ($this->isMetricsEnabled) {
-                $duration = (microtime(true) - $start) * 1000;
+                $durationInSeconds = microtime(true) - $start;
                 $this->instrumentation->meter()
-                    ->createHistogram(HttpMetrics::HTTP_CLIENT_REQUEST_DURATION, 'ms')
+                    ->createHistogram(
+                        HttpMetrics::HTTP_CLIENT_REQUEST_DURATION,
+                        's',
+                        'Duration of HTTP client requests.',
+                        ['ExplicitBucketBoundaries' => MetricBoundaries::HTTP_DURATION]
+                    )
                     ->record(
-                        $duration,
+                        $durationInSeconds,
                         [
                             ServerAttributes::SERVER_ADDRESS => $request->getUri()->getHost(),
                             HttpAttributes::HTTP_REQUEST_METHOD => $request->getMethod(),

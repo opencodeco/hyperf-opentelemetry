@@ -6,6 +6,7 @@ namespace Hyperf\OpenTelemetry\Aspect;
 
 use Hyperf\Di\Aop\ProceedingJoinPoint;
 use Hyperf\Di\Exception\Exception;
+use Hyperf\OpenTelemetry\Support\MetricBoundaries;
 use Hyperf\Stringable\Str;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
@@ -71,12 +72,17 @@ class RedisAspect extends AbstractAspect
             $scope?->end();
 
             if ($this->isMetricsEnabled) {
-                $duration = (microtime(true) - $start) * 1000;
+                $durationInSeconds = microtime(true) - $start;
 
                 $this->instrumentation->meter()
-                    ->createHistogram(DbMetrics::DB_CLIENT_OPERATION_DURATION, 'ms')
+                    ->createHistogram(
+                        DbMetrics::DB_CLIENT_OPERATION_DURATION,
+                        's',
+                        'Duration of database client operations.',
+                        ['ExplicitBucketBoundaries' => MetricBoundaries::DB_DURATION]
+                    )
                     ->record(
-                        $duration,
+                        $durationInSeconds,
                         array_merge(
                             $metricErrors,
                             [

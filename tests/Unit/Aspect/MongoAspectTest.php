@@ -166,7 +166,14 @@ class MongoAspectTest extends TestCase
 
         $this->meter->expects($this->once())
             ->method('createHistogram')
-            ->with(DbMetrics::DB_CLIENT_OPERATION_DURATION, 'ms')
+            ->with(
+                DbMetrics::DB_CLIENT_OPERATION_DURATION,
+                's',
+                'Duration of database client operations.',
+                $this->callback(fn (array $advisory) => isset($advisory['ExplicitBucketBoundaries'])
+                    && is_array($advisory['ExplicitBucketBoundaries'])
+                    && count($advisory['ExplicitBucketBoundaries']) === 9)
+            )
             ->willReturn($this->histogram);
 
         $this->histogram->expects($this->once())
@@ -251,7 +258,14 @@ class MongoAspectTest extends TestCase
 
         $this->meter->expects($this->once())
             ->method('createHistogram')
-            ->with(DbMetrics::DB_CLIENT_OPERATION_DURATION, 'ms')
+            ->with(
+                DbMetrics::DB_CLIENT_OPERATION_DURATION,
+                's',
+                'Duration of database client operations.',
+                $this->callback(fn (array $advisory) => isset($advisory['ExplicitBucketBoundaries'])
+                    && is_array($advisory['ExplicitBucketBoundaries'])
+                    && count($advisory['ExplicitBucketBoundaries']) === 9)
+            )
             ->willReturn($this->histogram);
 
         $this->histogram->expects($this->once())

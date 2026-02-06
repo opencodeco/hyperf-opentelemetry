@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hyperf\OpenTelemetry\Middleware;
 
+use Hyperf\OpenTelemetry\Support\MetricBoundaries;
 use Hyperf\OpenTelemetry\Support\Uri;
 use OpenTelemetry\SemConv\Attributes\ErrorAttributes;
 use OpenTelemetry\SemConv\Attributes\HttpAttributes;
@@ -49,11 +50,16 @@ class MetricMiddleware extends AbstractMiddleware
 
             throw $exception;
         } finally {
-            $duration = (microtime(true) - $startTime) * 1000;
+            $durationInSeconds = microtime(true) - $startTime;
 
             $this->instrumentation->meter()
-                ->createHistogram(HttpMetrics::HTTP_SERVER_REQUEST_DURATION, 'ms')
-                ->record($duration, $attributes);
+                ->createHistogram(
+                    HttpMetrics::HTTP_SERVER_REQUEST_DURATION,
+                    's',
+                    'Duration of HTTP server requests.',
+                    ['ExplicitBucketBoundaries' => MetricBoundaries::HTTP_DURATION]
+                )
+                ->record($durationInSeconds, $attributes);
         }
     }
 

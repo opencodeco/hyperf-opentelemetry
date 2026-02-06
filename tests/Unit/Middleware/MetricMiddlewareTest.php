@@ -81,7 +81,14 @@ class MetricMiddlewareTest extends TestCase
         $this->configureResponseMock(200);
 
         $this->meter->method('createHistogram')
-            ->with(HttpMetrics::HTTP_SERVER_REQUEST_DURATION, 'ms')
+            ->with(
+                HttpMetrics::HTTP_SERVER_REQUEST_DURATION,
+                's',
+                'Duration of HTTP server requests.',
+                $this->callback(fn (array $advisory) => isset($advisory['ExplicitBucketBoundaries'])
+                    && is_array($advisory['ExplicitBucketBoundaries'])
+                    && count($advisory['ExplicitBucketBoundaries']) === 14)
+            )
             ->willReturn($this->histogram);
 
         $expectedAttributes = [
@@ -114,7 +121,14 @@ class MetricMiddlewareTest extends TestCase
         $this->configureResponseMock(200);
 
         $this->meter->method('createHistogram')
-            ->with(HttpMetrics::HTTP_SERVER_REQUEST_DURATION, 'ms')
+            ->with(
+                HttpMetrics::HTTP_SERVER_REQUEST_DURATION,
+                's',
+                'Duration of HTTP server requests.',
+                $this->callback(fn (array $advisory) => isset($advisory['ExplicitBucketBoundaries'])
+                    && is_array($advisory['ExplicitBucketBoundaries'])
+                    && count($advisory['ExplicitBucketBoundaries']) === 14)
+            )
             ->willReturn($this->histogram);
 
         $expectedAttributes = [
@@ -198,7 +212,14 @@ class MetricMiddlewareTest extends TestCase
             ->willThrowException($exception);
 
         $this->meter->method('createHistogram')
-            ->with(HttpMetrics::HTTP_SERVER_REQUEST_DURATION, 'ms')
+            ->with(
+                HttpMetrics::HTTP_SERVER_REQUEST_DURATION,
+                's',
+                'Duration of HTTP server requests.',
+                $this->callback(fn (array $advisory) => isset($advisory['ExplicitBucketBoundaries'])
+                    && is_array($advisory['ExplicitBucketBoundaries'])
+                    && count($advisory['ExplicitBucketBoundaries']) === 14)
+            )
             ->willReturn($this->histogram);
 
         $this->histogram->expects($this->once())

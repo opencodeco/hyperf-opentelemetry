@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Hyperf\OpenTelemetry\Aspect;
 
 use Hyperf\Di\Aop\ProceedingJoinPoint;
+use Hyperf\OpenTelemetry\Support\MetricBoundaries;
 use Hyperf\Stringable\Str;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
@@ -77,12 +78,17 @@ class MongoAspect extends AbstractAspect
             $scope?->end();
 
             if ($this->isMetricsEnabled) {
-                $duration = (microtime(true) - $start) * 1000;
+                $durationInSeconds = microtime(true) - $start;
 
                 $this->instrumentation->meter()
-                    ->createHistogram(DbMetrics::DB_CLIENT_OPERATION_DURATION, 'ms')
+                    ->createHistogram(
+                        DbMetrics::DB_CLIENT_OPERATION_DURATION,
+                        's',
+                        'Duration of database client operations.',
+                        ['ExplicitBucketBoundaries' => MetricBoundaries::DB_DURATION]
+                    )
                     ->record(
-                        $duration,
+                        $durationInSeconds,
                         array_merge($metricErrors, [
                             DbAttributes::DB_SYSTEM_NAME => DbIncubatingAttributes::DB_SYSTEM_NAME_VALUE_MONGODB,
                             DbAttributes::DB_OPERATION_NAME => $operation,
