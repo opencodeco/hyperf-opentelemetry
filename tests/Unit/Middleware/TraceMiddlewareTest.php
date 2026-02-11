@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Middleware;
 
 use Hyperf\Contract\ConfigInterface;
+use Hyperf\HttpMessage\Exception\HttpException;
 use Hyperf\OpenTelemetry\Instrumentation;
 use Hyperf\OpenTelemetry\Middleware\TraceMiddleware;
 use Hyperf\OpenTelemetry\Support\SpanScope;
@@ -259,6 +260,12 @@ class TraceMiddlewareTest extends TestCase
             ->with($exception);
 
         $spanScope->expects($this->once())
+            ->method('setAttributes')
+            ->with([
+                HttpAttributes::HTTP_RESPONSE_STATUS_CODE => 500,
+            ]);
+
+        $spanScope->expects($this->once())
             ->method('end');
 
         $handler = $this->createMock(RequestHandlerInterface::class);
@@ -269,6 +276,48 @@ class TraceMiddlewareTest extends TestCase
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Test exception');
+
+        $middleware = new TraceMiddleware(
+            $this->config,
+            $this->instrumentation,
+            $this->switcher
+        );
+
+        $middleware->process($this->request, $handler);
+    }
+
+    public function testProcessWithHttpException(): void
+    {
+        $this->configureRequestMock('POST', 'https://api.example.com:443/api/not-found');
+
+        $exception = new HttpException(404, 'Not Found');
+
+        $spanScope = $this->createMock(SpanScope::class);
+        $this->instrumentation->expects($this->once())
+            ->method('startSpan')
+            ->willReturn($spanScope);
+
+        $spanScope->expects($this->once())
+            ->method('recordException')
+            ->with($exception);
+
+        $spanScope->expects($this->once())
+            ->method('setAttributes')
+            ->with([
+                HttpAttributes::HTTP_RESPONSE_STATUS_CODE => 404,
+            ]);
+
+        $spanScope->expects($this->once())
+            ->method('end');
+
+        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler->expects($this->once())
+            ->method('handle')
+            ->with($this->request)
+            ->willThrowException($exception);
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionMessage('Not Found');
 
         $middleware = new TraceMiddleware(
             $this->config,
