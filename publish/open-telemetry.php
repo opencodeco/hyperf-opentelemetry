@@ -2,12 +2,15 @@
 
 declare(strict_types=1);
 
+use Hyperf\OpenTelemetry\Factory\Log\Exporter\OtlpGrpcLogExporterFactory;
 use Hyperf\OpenTelemetry\Factory\Log\Exporter\OtlpHttpLogExporterFactory;
 use Hyperf\OpenTelemetry\Factory\Log\Exporter\StdoutLogExporterFactory;
 use Hyperf\OpenTelemetry\Factory\Log\Processor\BatchLogProcessorFactory;
 use Hyperf\OpenTelemetry\Factory\Log\Processor\SimpleLogProcessorFactory;
+use Hyperf\OpenTelemetry\Factory\Metric\Exporter\OtlpGrpcMetricExporterFactory;
 use Hyperf\OpenTelemetry\Factory\Metric\Exporter\OtlpHttpMetricExporterFactory;
 use Hyperf\OpenTelemetry\Factory\Metric\Exporter\StdoutMetricExporterFactory;
+use Hyperf\OpenTelemetry\Factory\Trace\Exporter\OtlpGrpcTraceExporterFactory;
 use Hyperf\OpenTelemetry\Factory\Trace\Exporter\OtlpHttpTraceExporterFactory;
 use Hyperf\OpenTelemetry\Factory\Trace\Exporter\StdoutTraceExporterFactory;
 use Hyperf\OpenTelemetry\Factory\Trace\Processor\BatchSpanProcessorFactory;
@@ -53,6 +56,17 @@ return [
             ],
             'stdout' => [
                 'driver' => StdoutTraceExporterFactory::class,
+            ],
+            'otlp_grpc' => [
+                'driver' => OtlpGrpcTraceExporterFactory::class,
+                'options' => [
+                    'endpoint' => env('OTEL_TRACES_GRPC_ENDPOINT', 'http://localhost:4317'),
+                    'compression' => TransportFactoryInterface::COMPRESSION_GZIP,
+                    'headers' => [],
+                    'timeout' => (float) env('OTEL_TRACES_TIMEOUT_SECONDS', 10),
+                    'retry_delay' => (int) env('OTEL_TRACES_RETRY_DELAY_MS', 100),
+                    'max_retries' => (int) env('OTEL_TRACES_RETRY_MAX', 3),
+                ],
             ],
         ],
         'processors' => [
@@ -101,6 +115,18 @@ return [
             'stdout' => [
                 'driver' => StdoutMetricExporterFactory::class,
             ],
+            'otlp_grpc' => [
+                'driver' => OtlpGrpcMetricExporterFactory::class,
+                'options' => [
+                    'temporality' => Temporality::DELTA,
+                    'endpoint' => env('OTEL_METRICS_GRPC_ENDPOINT', 'http://localhost:4317'),
+                    'compression' => TransportFactoryInterface::COMPRESSION_GZIP,
+                    'headers' => [],
+                    'timeout' => (float) env('OTEL_METRICS_TIMEOUT_SECONDS', 10),
+                    'retry_delay' => (int) env('OTEL_METRICS_RETRY_DELAY_MS', 100),
+                    'max_retries' => (int) env('OTEL_METRICS_RETRY_MAX', 3),
+                ],
+            ],
         ],
     ],
 
@@ -125,6 +151,17 @@ return [
             ],
             'stdout' => [
                 'driver' => StdoutLogExporterFactory::class,
+            ],
+            'otlp_grpc' => [
+                'driver' => OtlpGrpcLogExporterFactory::class,
+                'options' => [
+                    'endpoint' => env('OTEL_LOGS_GRPC_ENDPOINT', 'http://localhost:4317'),
+                    'compression' => TransportFactoryInterface::COMPRESSION_GZIP,
+                    'headers' => [],
+                    'timeout' => (float) env('OTEL_LOGS_TIMEOUT_SECONDS', 10),
+                    'retry_delay' => (int) env('OTEL_LOGS_RETRY_DELAY_MS', 100),
+                    'max_retries' => (int) env('OTEL_LOGS_RETRY_MAX', 3),
+                ],
             ],
         ],
         'processors' => [
@@ -166,7 +203,7 @@ return [
                         'response' => ['*'],
                     ],
                     'ignore_paths' => [
-                        // '/^\/health$/',
+                        '/^\/health$/',
                     ],
                 ],
             ],
