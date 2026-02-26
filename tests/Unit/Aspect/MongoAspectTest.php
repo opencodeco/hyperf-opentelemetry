@@ -15,7 +15,6 @@ use Hyperf\OpenTelemetry\Switcher;
 use OpenTelemetry\API\Metrics\HistogramInterface;
 use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Trace\SpanKind;
-use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\SemConv\Attributes\DbAttributes;
 use OpenTelemetry\SemConv\Attributes\ErrorAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\DbIncubatingAttributes;
@@ -145,22 +144,15 @@ class MongoAspectTest extends TestCase
             ->expects($this->once())
             ->method('startSpan')
             ->with(
-                $this->equalTo('mongodb FIND users'),
+                $this->equalTo('find users'),
                 $this->equalTo(SpanKind::KIND_CLIENT),
                 $this->equalTo([
                     DbAttributes::DB_SYSTEM_NAME => DbIncubatingAttributes::DB_SYSTEM_NAME_VALUE_MONGODB,
                     DbAttributes::DB_COLLECTION_NAME => 'users',
-                    DbAttributes::DB_OPERATION_NAME => 'FIND',
-                    'db.system' => DbIncubatingAttributes::DB_SYSTEM_NAME_VALUE_MONGODB,
-                    'db.operation' => 'FIND',
-                    'db.collection' => 'users',
+                    DbAttributes::DB_OPERATION_NAME => 'find',
                 ])
             )
             ->willReturn($this->spanScope);
-
-        $this->spanScope->expects($this->once())
-            ->method('setStatus')
-            ->with(StatusCode::STATUS_OK);
 
         $this->spanScope->expects($this->once())->method('end');
 
@@ -182,7 +174,7 @@ class MongoAspectTest extends TestCase
                 $this->isType('float'),
                 $this->equalTo([
                     DbAttributes::DB_SYSTEM_NAME => DbIncubatingAttributes::DB_SYSTEM_NAME_VALUE_MONGODB,
-                    DbAttributes::DB_OPERATION_NAME => 'FIND',
+                    DbAttributes::DB_OPERATION_NAME => 'find',
                 ])
             );
 
@@ -205,7 +197,6 @@ class MongoAspectTest extends TestCase
             $instrumentation->method('meter')->willReturn($this->meter);
 
             $spanScope = $this->createMock(SpanScope::class);
-            $spanScope->expects($this->once())->method('setStatus');
             $spanScope->expects($this->once())->method('end');
 
             $aspect = new MongoAspect(
@@ -218,16 +209,14 @@ class MongoAspectTest extends TestCase
             $proceedingJoinPoint->methodName = $method;
             $proceedingJoinPoint->method('getInstance')->willReturn($this->mongoCollection);
 
-            $expectedOperation = strtoupper($method);
-
             $instrumentation
                 ->expects($this->once())
                 ->method('startSpan')
                 ->with(
-                    $this->equalTo("mongodb {$expectedOperation} users"),
+                    $this->equalTo("{$method} users"),
                     $this->anything(),
-                    $this->callback(function ($attributes) use ($expectedOperation) {
-                        return $attributes[DbAttributes::DB_OPERATION_NAME] === $expectedOperation;
+                    $this->callback(function ($attributes) use ($method) {
+                        return $attributes[DbAttributes::DB_OPERATION_NAME] === $method;
                     })
                 )
                 ->willReturn($spanScope);
@@ -253,7 +242,7 @@ class MongoAspectTest extends TestCase
         $this->instrumentation
             ->expects($this->once())
             ->method('startSpan')
-            ->with('mongodb INSERTONE users')
+            ->with('insertOne users')
             ->willReturn($this->spanScope);
 
         $this->meter->expects($this->once())
@@ -275,7 +264,7 @@ class MongoAspectTest extends TestCase
                 [
                     ErrorAttributes::ERROR_TYPE => Exception::class,
                     DbAttributes::DB_SYSTEM_NAME => DbIncubatingAttributes::DB_SYSTEM_NAME_VALUE_MONGODB,
-                    DbAttributes::DB_OPERATION_NAME => 'INSERTONE',
+                    DbAttributes::DB_OPERATION_NAME => 'insertOne',
                 ]
             );
 
@@ -318,7 +307,7 @@ class MongoAspectTest extends TestCase
             ->expects($this->once())
             ->method('startSpan')
             ->with(
-                $this->equalTo('mongodb FIND orders'),
+                $this->equalTo('find orders'),
                 $this->anything(),
                 $this->callback(function ($attributes) {
                     return $attributes[DbAttributes::DB_COLLECTION_NAME] === 'orders';
