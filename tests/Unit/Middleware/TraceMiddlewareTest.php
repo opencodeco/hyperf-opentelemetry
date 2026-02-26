@@ -141,7 +141,7 @@ class TraceMiddlewareTest extends TestCase
         $this->instrumentation->expects($this->once())
             ->method('startSpan')
             ->with(
-                '/users/{number}',
+                'GET /users/{number}',
                 SpanKind::KIND_SERVER,
                 [
                     HttpAttributes::HTTP_REQUEST_METHOD => 'GET',
@@ -204,7 +204,7 @@ class TraceMiddlewareTest extends TestCase
         $this->instrumentation->expects($this->once())
             ->method('startSpan')
             ->with(
-                '/users/{identifier}',
+                'GET /users/{identifier}',
                 SpanKind::KIND_SERVER,
                 [
                     HttpAttributes::HTTP_REQUEST_METHOD => 'GET',

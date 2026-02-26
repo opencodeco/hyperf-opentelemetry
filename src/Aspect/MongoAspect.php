@@ -6,9 +6,7 @@ namespace Hyperf\OpenTelemetry\Aspect;
 
 use Hyperf\Di\Aop\ProceedingJoinPoint;
 use Hyperf\OpenTelemetry\Support\MetricBoundaries;
-use Hyperf\Stringable\Str;
 use OpenTelemetry\API\Trace\SpanKind;
-use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\SemConv\Attributes\DbAttributes;
 use OpenTelemetry\SemConv\Attributes\ErrorAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\DbIncubatingAttributes;
@@ -40,8 +38,9 @@ class MongoAspect extends AbstractAspect
 
         $method = $proceedingJoinPoint->methodName;
 
-        $operation = Str::upper($method);
+        $operation = $method;
         $collection = $this->getCollectionName($proceedingJoinPoint);
+        $namespace = $this->getNamespace($proceedingJoinPoint);
         $driver = DbIncubatingAttributes::DB_SYSTEM_NAME_VALUE_MONGODB;
 
         $scope = null;
@@ -50,22 +49,19 @@ class MongoAspect extends AbstractAspect
 
         if ($this->isTracingEnabled) {
             $scope = $this->instrumentation->startSpan(
-                name: "{$driver} {$operation} {$collection}",
+                name: "{$operation} {$collection}",
                 spanKind: SpanKind::KIND_CLIENT,
                 attributes: [
                     DbAttributes::DB_SYSTEM_NAME => $driver,
                     DbAttributes::DB_COLLECTION_NAME => $collection,
                     DbAttributes::DB_OPERATION_NAME => $operation,
-                    'db.system' => $driver,
-                    'db.operation' => $operation,
-                    'db.collection' => $collection,
+                    ...($namespace !== null ? [DbAttributes::DB_NAMESPACE => $namespace] : []),
                 ],
             );
         }
 
         try {
             $result = $proceedingJoinPoint->process();
-            $scope?->setStatus(StatusCode::STATUS_OK);
         } catch (Throwable $e) {
             $scope?->recordException($e);
 
@@ -112,5 +108,15 @@ class MongoAspect extends AbstractAspect
         $property = new ReflectionProperty('Hyperf\GoTask\MongoClient\Collection', 'collection');
 
         return $property->getValue($collection);
+    }
+
+    private function getNamespace(ProceedingJoinPoint $proceedingJoinPoint): ?string
+    {
+        try {
+            $property = new ReflectionProperty('Hyperf\GoTask\MongoClient\Collection', 'database');
+            return $property->getValue($proceedingJoinPoint->getInstance());
+        } catch (Throwable) {
+            return null;
+        }
     }
 }

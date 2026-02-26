@@ -124,7 +124,7 @@ class DbQueryExecutedListenerTest extends TestCase
             ->expects($this->once())
             ->method('startSpan')
             ->with(
-                $this->equalTo('postgresql SELECT users'),
+                $this->equalTo('SELECT users'),
                 $this->equalTo(SpanKind::KIND_CLIENT),
                 [
                     DbAttributes::DB_SYSTEM_NAME => DbAttributes::DB_SYSTEM_NAME_VALUE_POSTGRESQL,
@@ -132,11 +132,9 @@ class DbQueryExecutedListenerTest extends TestCase
                     DbAttributes::DB_NAMESPACE => 'testdb',
                     DbAttributes::DB_OPERATION_NAME => 'SELECT',
                     DbAttributes::DB_QUERY_TEXT => $sql,
+                    DbAttributes::DB_QUERY_SUMMARY => 'SELECT users',
                     ServerAttributes::SERVER_ADDRESS => 'localhost',
                     ServerAttributes::SERVER_PORT => 8000,
-                    'db.system' => DbAttributes::DB_SYSTEM_NAME_VALUE_POSTGRESQL,
-                    'db.operation' => 'SELECT',
-                    'db.sql.table' => 'users',
                 ],
                 $this->isType('int')
             )
@@ -196,7 +194,7 @@ class DbQueryExecutedListenerTest extends TestCase
             ->expects($this->once())
             ->method('startSpan')
             ->with(
-                $this->equalTo('mysql SELECT users'),
+                $this->equalTo('SELECT users'),
                 $this->equalTo(SpanKind::KIND_CLIENT),
                 [
                     DbAttributes::DB_SYSTEM_NAME => DbAttributes::DB_SYSTEM_NAME_VALUE_MYSQL,
@@ -204,11 +202,9 @@ class DbQueryExecutedListenerTest extends TestCase
                     DbAttributes::DB_NAMESPACE => 'testdb',
                     DbAttributes::DB_OPERATION_NAME => 'SELECT',
                     DbAttributes::DB_QUERY_TEXT => 'SELECT id, name FROM users WHERE active = \'1\'',
+                    DbAttributes::DB_QUERY_SUMMARY => 'SELECT users',
                     ServerAttributes::SERVER_ADDRESS => 'localhost',
                     ServerAttributes::SERVER_PORT => 8000,
-                    'db.system' => DbAttributes::DB_SYSTEM_NAME_VALUE_MYSQL,
-                    'db.operation' => 'SELECT',
-                    'db.sql.table' => 'users',
                 ],
                 $this->isType('int')
             )
@@ -265,7 +261,7 @@ class DbQueryExecutedListenerTest extends TestCase
             ->expects($this->once())
             ->method('startSpan')
             ->with(
-                $this->equalTo('microsoft.sql_server SELECT users')
+                $this->equalTo('SELECT users')
             )
             ->willReturn($spanScope);
 

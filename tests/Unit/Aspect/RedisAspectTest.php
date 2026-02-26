@@ -14,7 +14,6 @@ use Hyperf\OpenTelemetry\Switcher;
 use OpenTelemetry\API\Metrics\HistogramInterface;
 use OpenTelemetry\API\Metrics\MeterInterface;
 use OpenTelemetry\API\Trace\SpanKind;
-use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\SemConv\Attributes\DbAttributes;
 use OpenTelemetry\SemConv\Attributes\ErrorAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\DbIncubatingAttributes;
@@ -101,22 +100,15 @@ class RedisAspectTest extends TestCase
             ->expects($this->once())
             ->method('startSpan')
             ->with(
-                $this->equalTo('Redis GET'),
+                $this->equalTo('GET'),
                 $this->equalTo(SpanKind::KIND_CLIENT),
                 [
                     DbAttributes::DB_SYSTEM_NAME => DbIncubatingAttributes::DB_SYSTEM_NAME_VALUE_REDIS,
                     DbAttributes::DB_OPERATION_NAME => 'GET',
                     DbAttributes::DB_QUERY_TEXT => 'get user:123',
-                    'db.system' => DbIncubatingAttributes::DB_SYSTEM_NAME_VALUE_REDIS,
-                    'db.operation.pool' => 'GET',
-                    'redis.pool' => 'default',
                 ]
             )
             ->willReturn($this->spanScope);
-
-        $this->spanScope->expects($this->once())
-            ->method('setStatus')
-            ->with(StatusCode::STATUS_OK);
 
         $this->spanScope->expects($this->once())->method('end');
 
@@ -178,15 +170,12 @@ class RedisAspectTest extends TestCase
             ->expects($this->once())
             ->method('startSpan')
             ->with(
-                $this->equalTo('Redis SET'),
+                $this->equalTo('SET'),
                 $this->equalTo(SpanKind::KIND_CLIENT),
                 [
                     DbAttributes::DB_SYSTEM_NAME => DbIncubatingAttributes::DB_SYSTEM_NAME_VALUE_REDIS,
                     DbAttributes::DB_OPERATION_NAME => 'SET',
                     DbAttributes::DB_QUERY_TEXT => 'set user:123 data EX 3600',
-                    'db.system' => DbIncubatingAttributes::DB_SYSTEM_NAME_VALUE_REDIS,
-                    'db.operation.pool' => 'SET',
-                    'redis.pool' => 'semaphore',
                 ]
             )
             ->willReturn($this->spanScope);
@@ -257,15 +246,12 @@ class RedisAspectTest extends TestCase
             ->expects($this->once())
             ->method('startSpan')
             ->with(
-                $this->equalTo('Redis HMSET'),
+                $this->equalTo('HMSET'),
                 $this->equalTo(SpanKind::KIND_CLIENT),
                 [
                     DbAttributes::DB_SYSTEM_NAME => DbIncubatingAttributes::DB_SYSTEM_NAME_VALUE_REDIS,
                     DbAttributes::DB_OPERATION_NAME => 'HMSET',
                     DbAttributes::DB_QUERY_TEXT => 'hmset user:123 John 30 São Paulo',
-                    'db.system' => DbIncubatingAttributes::DB_SYSTEM_NAME_VALUE_REDIS,
-                    'redis.pool' => 'default',
-                    'db.operation.pool' => 'HMSET',
                 ]
             )
             ->willReturn($this->spanScope);

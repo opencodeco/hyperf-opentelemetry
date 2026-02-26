@@ -497,7 +497,6 @@ class GuzzleClientAspectTest extends TestCase
                     ServerAttributes::SERVER_ADDRESS => 'api.example.com',
                     UrlIncubatingAttributes::URL_TEMPLATE => '/v1/users',
                     HttpAttributes::HTTP_REQUEST_METHOD => 'POST',
-                    HttpAttributes::HTTP_RESPONSE_STATUS_CODE => 0,
                     ErrorAttributes::ERROR_TYPE => $exception::class,
                 ]
             );
