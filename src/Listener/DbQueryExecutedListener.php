@@ -55,7 +55,7 @@ class DbQueryExecutedListener extends AbstractInstrumenter implements ListenerIn
         $operation = Str::upper(Str::before($event->sql, ' '));
         $table = $this->extractTableName($sql);
         $driver = $this->getDriverName($event);
-        $spanName = $table ? "{$driver} {$operation} {$table}" : "{$driver} {$operation}";
+        $spanName = $table ? "{$operation} {$table}" : $operation;
 
         if ($this->isTracingEnabled) {
             $scope = $this->instrumentation->startSpan(
@@ -67,11 +67,9 @@ class DbQueryExecutedListener extends AbstractInstrumenter implements ListenerIn
                     DbAttributes::DB_NAMESPACE => $event->connection->getDatabaseName(),
                     DbAttributes::DB_OPERATION_NAME => Str::upper($operation),
                     DbAttributes::DB_QUERY_TEXT => $sql,
+                    DbAttributes::DB_QUERY_SUMMARY => $table ? "{$operation} {$table}" : $operation,
                     ServerAttributes::SERVER_ADDRESS => $event->connection->getConfig('host'),
                     ServerAttributes::SERVER_PORT => $event->connection->getConfig('port'),
-                    'db.system' => $driver,
-                    'db.operation' => Str::upper($operation),
-                    'db.sql.table' => $table,
                 ],
                 startTimestamp: $this->calculateQueryStartTime($nowInNs, $event->time)
             );

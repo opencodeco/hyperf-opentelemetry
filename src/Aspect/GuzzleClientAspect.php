@@ -172,7 +172,6 @@ class GuzzleClientAspect extends AbstractAspect
                         [
                             ServerAttributes::SERVER_ADDRESS => $request->getUri()->getHost(),
                             HttpAttributes::HTTP_REQUEST_METHOD => $request->getMethod(),
-                            HttpAttributes::HTTP_RESPONSE_STATUS_CODE => 0,
                             ErrorAttributes::ERROR_TYPE => get_class($throwable),
                             UrlIncubatingAttributes::URL_TEMPLATE => Uri::sanitize(
                                 $request->getUri()->getPath(),

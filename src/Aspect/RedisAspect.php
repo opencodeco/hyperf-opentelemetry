@@ -9,7 +9,6 @@ use Hyperf\Di\Exception\Exception;
 use Hyperf\OpenTelemetry\Support\MetricBoundaries;
 use Hyperf\Stringable\Str;
 use OpenTelemetry\API\Trace\SpanKind;
-use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\SemConv\Attributes\DbAttributes;
 use OpenTelemetry\SemConv\Attributes\ErrorAttributes;
 use OpenTelemetry\SemConv\Incubating\Attributes\DbIncubatingAttributes;
@@ -43,23 +42,18 @@ class RedisAspect extends AbstractAspect
 
         if ($this->isTracingEnabled) {
             $scope = $this->instrumentation->startSpan(
-                name: 'Redis ' . Str::upper($command),
+                name: Str::upper($command),
                 spanKind: SpanKind::KIND_CLIENT,
                 attributes: [
                     DbAttributes::DB_SYSTEM_NAME => DbIncubatingAttributes::DB_SYSTEM_NAME_VALUE_REDIS,
                     DbAttributes::DB_OPERATION_NAME => Str::upper($command),
                     DbAttributes::DB_QUERY_TEXT => Str::limit($commandFull, 512),
-                    'db.system' => DbIncubatingAttributes::DB_SYSTEM_NAME_VALUE_REDIS,
-                    'db.operation.pool' => Str::upper($command),
-                    'redis.pool' => $poolName,
                 ]
             );
         }
 
         try {
             $result = $proceedingJoinPoint->process();
-
-            $scope?->setStatus(StatusCode::STATUS_OK);
         } catch (Throwable $e) {
             $scope?->recordException($e);
 
