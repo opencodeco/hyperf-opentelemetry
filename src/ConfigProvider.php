@@ -41,8 +41,6 @@ class ConfigProvider
                 LoggerProviderInterface::class => LoggerProviderFactory::class,
             ],
             'listeners' => [
-                Listener\MetricFlushListener::class,
-                Listener\TraceFlushListener::class,
                 Listener\OtelShutdownListener::class,
                 Listener\DbQueryExecutedListener::class,
             ],
