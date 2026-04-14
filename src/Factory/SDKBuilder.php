@@ -35,7 +35,7 @@ class SDKBuilder
             ->setMeterProvider($meterProvider)
             ->setLoggerProvider($loggerProvider)
             ->setPropagator(TraceContextPropagator::getInstance())
-            ->setAutoShutdown(true)
+            ->setAutoShutdown(false)
             ->buildAndRegisterGlobal();
     }
 }
