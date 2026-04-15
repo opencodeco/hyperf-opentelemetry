@@ -14,6 +14,7 @@ use Hyperf\OpenTelemetry\Factory\Trace\Exporter\OtlpGrpcTraceExporterFactory;
 use Hyperf\OpenTelemetry\Factory\Trace\Exporter\OtlpHttpTraceExporterFactory;
 use Hyperf\OpenTelemetry\Factory\Trace\Exporter\StdoutTraceExporterFactory;
 use Hyperf\OpenTelemetry\Factory\Trace\Processor\BatchSpanProcessorFactory;
+use Hyperf\OpenTelemetry\Factory\Trace\Processor\DeferSpanProcessorFactory;
 use Hyperf\OpenTelemetry\Factory\Trace\Processor\SimpleSpanProcessorFactory;
 use Hyperf\OpenTelemetry\Factory\Trace\Sampler\AlwaysOnSamplerFactory;
 use OpenTelemetry\SDK\Common\Export\TransportFactoryInterface;
@@ -82,6 +83,9 @@ return [
             ],
             'simple' => [
                 'driver' => SimpleSpanProcessorFactory::class,
+            ],
+            'defer' => [
+                'driver' => DeferSpanProcessorFactory::class,
             ],
         ],
         'samplers' => [
