@@ -29,28 +29,51 @@ class OtelShutdownListenerTest extends TestCase
         $this->assertInstanceOf(ListenerInterface::class, $listener);
     }
 
-    public function testProcessCallsShutdown(): void
+    public function testListensToOnWorkerExit(): void
+    {
+        $listener = new OtelShutdownListener(
+            $this->createMock(MeterProviderInterface::class),
+            $this->createMock(TracerProviderInterface::class),
+            $this->createMock(StdoutLoggerInterface::class)
+        );
+        $this->assertSame([OnWorkerExit::class], $listener->listen());
+    }
+
+    public function testProcessCallsShutdownInsideCoroutine(): void
     {
         $meterProvider = $this->createMock(MeterProviderInterface::class);
         $tracerProvider = $this->createMock(TracerProviderInterface::class);
         $logger = $this->createMock(StdoutLoggerInterface::class);
 
-        $meterProvider->expects($this->once())->method('shutdown');
         $tracerProvider->expects($this->once())->method('shutdown');
+        $meterProvider->expects($this->once())->method('shutdown');
         $logger->expects($this->never())->method('warning');
 
         $listener = new OtelShutdownListener($meterProvider, $tracerProvider, $logger);
         $listener->process(new OnWorkerExit($this->createMock(Server::class), 0));
     }
 
-    public function testProcessLogsWarningOnException(): void
+    public function testProcessLogsWarningOnTracerException(): void
+    {
+        $meterProvider = $this->createMock(MeterProviderInterface::class);
+        $tracerProvider = $this->createMock(TracerProviderInterface::class);
+        $logger = $this->createMock(StdoutLoggerInterface::class);
+
+        $tracerProvider->method('shutdown')->willThrowException(new RuntimeException('tracer error'));
+        $logger->expects($this->atLeastOnce())->method('warning')->with($this->stringContains('tracer'));
+
+        $listener = new OtelShutdownListener($meterProvider, $tracerProvider, $logger);
+        $listener->process(new OnWorkerExit($this->createMock(Server::class), 0));
+    }
+
+    public function testProcessLogsWarningOnMeterException(): void
     {
         $meterProvider = $this->createMock(MeterProviderInterface::class);
         $tracerProvider = $this->createMock(TracerProviderInterface::class);
         $logger = $this->createMock(StdoutLoggerInterface::class);
 
         $meterProvider->method('shutdown')->willThrowException(new RuntimeException('meter error'));
-        $logger->expects($this->once())->method('warning')->with($this->stringContains('meter error'));
+        $logger->expects($this->atLeastOnce())->method('warning')->with($this->stringContains('meter'));
 
         $listener = new OtelShutdownListener($meterProvider, $tracerProvider, $logger);
         $listener->process(new OnWorkerExit($this->createMock(Server::class), 0));

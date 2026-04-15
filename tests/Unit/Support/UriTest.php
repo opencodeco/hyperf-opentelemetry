@@ -33,6 +33,13 @@ class UriTest extends TestCase
         $this->assertStringContainsString('/{uuid}', $result);
     }
 
+    public function testSanitizeUuidV7()
+    {
+        $uri = '/019363e0-7be6-7f00-8a7d-d6fb379a33a1/';
+        $result = Uri::sanitize($uri);
+        $this->assertStringContainsString('/{uuid}', $result);
+    }
+
     public function testSanitizeLicensePlate()
     {
         $uri = '/ABC1A23/';

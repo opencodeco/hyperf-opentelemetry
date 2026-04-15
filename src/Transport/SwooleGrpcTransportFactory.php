@@ -37,6 +37,9 @@ final class SwooleGrpcTransportFactory implements TransportFactoryInterface
         if ($compression !== null) {
             $compressionType = is_array($compression) ? ($compression[0] ?? null) : $compression;
         }
+        if ($compressionType === 'none') {
+            $compressionType = null;
+        }
 
         return new SwooleGrpcTransport(
             host: $parsed['host'],

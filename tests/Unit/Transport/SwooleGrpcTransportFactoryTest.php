@@ -100,4 +100,22 @@ class SwooleGrpcTransportFactoryTest extends TestCase
 
         $this->assertSame(ContentTypes::PROTOBUF, $transport->contentType());
     }
+
+    public function testCreateWithCompressionNoneTreatedAsNull(): void
+    {
+        $factory = new SwooleGrpcTransportFactory();
+
+        $transport = $factory->create(
+            endpoint: 'http://localhost:4317/opentelemetry.proto.collector.trace.v1.TraceService/Export',
+            contentType: ContentTypes::PROTOBUF,
+            compression: 'none',
+        );
+
+        $this->assertSame(ContentTypes::PROTOBUF, $transport->contentType());
+
+        // Use reflection to verify compression was normalized to null
+        $reflection = new \ReflectionClass($transport);
+        $compressionProp = $reflection->getProperty('compression');
+        $this->assertNull($compressionProp->getValue($transport));
+    }
 }
