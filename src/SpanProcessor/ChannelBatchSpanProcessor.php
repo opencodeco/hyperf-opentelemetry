@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Hyperf\OpenTelemetry\SpanProcessor;
 
-use Hyperf\Coordinator\Constants;
-use Hyperf\Coordinator\CoordinatorManager;
 use Hyperf\Coordinator\Timer;
 use Hyperf\Coroutine\Coroutine;
 use OpenTelemetry\API\Behavior\LogsMessagesTrait;
@@ -56,13 +54,7 @@ class ChannelBatchSpanProcessor implements SpanProcessorInterface
         if ($this->async) {
             $this->channel = new Channel($channelCapacity);
             $this->startConsumer();
-
-            if (CoordinatorManager::until(Constants::WORKER_EXIT)->isClosing()) {
-                return;
-            }
-
             $this->startFlushTimer();
-            $this->registerShutdownHook();
         }
     }
 
@@ -195,33 +187,6 @@ class ChannelBatchSpanProcessor implements SpanProcessorInterface
             }
 
 
-        });
-    }
-
-    private function registerShutdownHook(): void
-    {
-        $timer = $this->timerId;
-
-        Coroutine::create(function () use ($timer): void {
-            CoordinatorManager::until(Constants::WORKER_EXIT)->yield();
-
-            if ($this->closed) {
-                return;
-            }
-
-            $this->closed = true;
-
-            if ($timer !== null) {
-                (new Timer())->clear($timer);
-                $this->timerId = null;
-            }
-
-            if ($this->batch !== []) {
-                $this->pushBatch();
-            }
-
-            $this->channel?->close();
-            $this->exporter->shutdown();
         });
     }
 
