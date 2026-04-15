@@ -1,0 +1,243 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Hyperf\OpenTelemetry\SpanProcessor;
+
+use Hyperf\Coordinator\Constants;
+use Hyperf\Coordinator\CoordinatorManager;
+use Hyperf\Coordinator\Timer;
+use Hyperf\Coroutine\Coroutine;
+use OpenTelemetry\API\Behavior\LogsMessagesTrait;
+use OpenTelemetry\Context\Context;
+use OpenTelemetry\Context\ContextInterface;
+use OpenTelemetry\SDK\Common\Future\CancellationInterface;
+use OpenTelemetry\SDK\Trace\ReadableSpanInterface;
+use OpenTelemetry\SDK\Trace\ReadWriteSpanInterface;
+use OpenTelemetry\SDK\Trace\SpanDataInterface;
+use OpenTelemetry\SDK\Trace\SpanExporterInterface;
+use OpenTelemetry\SDK\Trace\SpanProcessorInterface;
+use Swoole\Coroutine\Channel;
+use Throwable;
+
+class ChannelBatchSpanProcessor implements SpanProcessorInterface
+{
+    use LogsMessagesTrait;
+
+    private ContextInterface $exportContext;
+
+    private bool $closed = false;
+
+    private bool $async;
+
+    private ?Channel $channel = null;
+
+    private ?int $timerId = null;
+
+    /** @var list<SpanDataInterface> */
+    private array $batch = [];
+
+    private int $dropped = 0;
+
+    private bool $loggedDrop = false;
+
+    public function __construct(
+        private readonly SpanExporterInterface $exporter,
+        private readonly int $maxBatchSize = 64,
+        int $channelCapacity = 128,
+        private readonly float $flushInterval = 2.0,
+    ) {
+        $this->exportContext = Context::getCurrent();
+        $this->async = Coroutine::id() > 0;
+
+        if ($this->async) {
+            $this->channel = new Channel($channelCapacity);
+            $this->startConsumer();
+
+            if (CoordinatorManager::until(Constants::WORKER_EXIT)->isClosing()) {
+                return;
+            }
+
+            $this->startFlushTimer();
+            $this->registerShutdownHook();
+        }
+    }
+
+    public function onStart(ReadWriteSpanInterface $span, ContextInterface $parentContext): void
+    {
+    }
+
+    public function onEnd(ReadableSpanInterface $span): void
+    {
+        if ($this->closed) {
+            return;
+        }
+
+        if (! $span->getContext()->isSampled()) {
+            return;
+        }
+
+        $spanData = $span->toSpanData();
+
+        if (! $this->async) {
+            $this->exportSync([$spanData]);
+            return;
+        }
+
+        $this->batch[] = $spanData;
+
+        if (count($this->batch) >= $this->maxBatchSize) {
+            $this->pushBatch();
+        }
+    }
+
+    public function forceFlush(?CancellationInterface $cancellation = null): bool
+    {
+        if ($this->closed) {
+            return false;
+        }
+
+        if ($this->batch !== []) {
+            if ($this->async) {
+                $this->pushBatch();
+            } else {
+                $this->exportSync($this->batch);
+                $this->batch = [];
+            }
+        }
+
+        return $this->exporter->forceFlush($cancellation);
+    }
+
+    public function shutdown(?CancellationInterface $cancellation = null): bool
+    {
+        if ($this->closed) {
+            return false;
+        }
+
+        $this->closed = true;
+
+        if ($this->async) {
+            if ($this->batch !== []) {
+                $this->pushBatch();
+            }
+            $this->channel?->close();
+        } else {
+            if ($this->batch !== []) {
+                $this->exportSync($this->batch);
+                $this->batch = [];
+            }
+        }
+
+        return $this->exporter->shutdown($cancellation);
+    }
+
+    private function pushBatch(): void
+    {
+        if ($this->batch === [] || $this->channel === null) {
+            return;
+        }
+
+        $batch = $this->batch;
+        $this->batch = [];
+
+        $success = $this->channel->push($batch, 0);
+
+        if ($success === false) {
+            $this->dropped += count($batch);
+            if (! $this->loggedDrop) {
+                self::logWarning(sprintf('[OTel] Channel full, dropped %d span(s). Total dropped: %d', count($batch), $this->dropped));
+                $this->loggedDrop = true;
+            }
+        }
+    }
+
+    private function startConsumer(): void
+    {
+        $channel = $this->channel;
+        $exporter = $this->exporter;
+        $exportContext = $this->exportContext;
+
+        Coroutine::create(static function () use ($channel, $exporter, $exportContext): void {
+            while (true) {
+                /** @var list<SpanDataInterface>|false $batch */
+                $batch = $channel->pop();
+
+                if ($batch === false) {
+                    break;
+                }
+
+                $scope = $exportContext->activate();
+                try {
+                    $exporter->export($batch)->await();
+                } catch (Throwable $e) {
+                    self::logError('Unhandled export error', ['exception' => $e]);
+                } finally {
+                    $scope->detach();
+                }
+            }
+        });
+    }
+
+    private function startFlushTimer(): void
+    {
+        $timer = new Timer();
+        $this->timerId = $timer->tick($this->flushInterval, function () use ($timer): void {
+            if ($this->closed) {
+                if ($this->timerId !== null) {
+                    $timer->clear($this->timerId);
+                    $this->timerId = null;
+                }
+                return;
+            }
+
+            if ($this->batch !== []) {
+                $this->pushBatch();
+            }
+
+            $this->loggedDrop = false;
+        });
+    }
+
+    private function registerShutdownHook(): void
+    {
+        $timer = $this->timerId;
+
+        Coroutine::create(function () use ($timer): void {
+            CoordinatorManager::until(Constants::WORKER_EXIT)->yield();
+
+            if ($this->closed) {
+                return;
+            }
+
+            $this->closed = true;
+
+            if ($timer !== null) {
+                (new Timer())->clear($timer);
+                $this->timerId = null;
+            }
+
+            if ($this->batch !== []) {
+                $this->pushBatch();
+            }
+
+            $this->channel?->close();
+            $this->exporter->shutdown();
+        });
+    }
+
+    /**
+     * @param list<SpanDataInterface> $spans
+     */
+    private function exportSync(array $spans): void
+    {
+        $scope = $this->exportContext->activate();
+        try {
+            $this->exporter->export($spans)->await();
+        } catch (Throwable $e) {
+            self::logError('Unhandled export error', ['exception' => $e]);
+        } finally {
+            $scope->detach();
+        }
+    }
+}
