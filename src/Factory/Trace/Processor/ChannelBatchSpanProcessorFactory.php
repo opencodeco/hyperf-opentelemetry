@@ -22,9 +22,9 @@ class ChannelBatchSpanProcessorFactory implements TraceProcessorFactoryInterface
 
         return new ChannelBatchSpanProcessor(
             exporter: $exporter,
-            maxBatchSize: $options['max_batch_size'] ?? 64,
-            channelCapacity: $options['channel_capacity'] ?? 128,
-            flushInterval: $options['flush_interval'] ?? 2.0,
+            maxBatchSize: $options['max_batch_size'] ?? ChannelBatchSpanProcessor::DEFAULT_MAX_EXPORT_BATCH_SIZE,
+            channelCapacity: $options['channel_capacity'] ?? ChannelBatchSpanProcessor::DEFAULT_CHANNEL_CAPACITY,
+            flushInterval: $options['flush_interval'] ?? ChannelBatchSpanProcessor::DEFAULT_FLUSH_INTERVAL,
         );
     }
 }

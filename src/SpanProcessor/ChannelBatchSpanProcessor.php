@@ -24,6 +24,12 @@ class ChannelBatchSpanProcessor implements SpanProcessorInterface
 {
     use LogsMessagesTrait;
 
+    public const DEFAULT_FLUSH_INTERVAL = 5000;
+
+    public const DEFAULT_CHANNEL_CAPACITY = 128;
+
+    public const DEFAULT_MAX_EXPORT_BATCH_SIZE = 512;
+
     private ContextInterface $exportContext;
 
     private bool $closed = false;
@@ -37,15 +43,12 @@ class ChannelBatchSpanProcessor implements SpanProcessorInterface
     /** @var list<SpanDataInterface> */
     private array $batch = [];
 
-    private int $dropped = 0;
-
-    private bool $loggedDrop = false;
 
     public function __construct(
         private readonly SpanExporterInterface $exporter,
-        private readonly int $maxBatchSize = 64,
-        int $channelCapacity = 128,
-        private readonly float $flushInterval = 2.0,
+        private readonly int $maxBatchSize = self::DEFAULT_MAX_EXPORT_BATCH_SIZE,
+        int $channelCapacity = self::DEFAULT_CHANNEL_CAPACITY,
+        private readonly float $flushInterval = self::DEFAULT_FLUSH_INTERVAL,
     ) {
         $this->exportContext = Context::getCurrent();
         $this->async = Coroutine::id() > 0;
@@ -144,11 +147,7 @@ class ChannelBatchSpanProcessor implements SpanProcessorInterface
         $success = $this->channel->push($batch, 0);
 
         if ($success === false) {
-            $this->dropped += count($batch);
-            if (! $this->loggedDrop) {
-                self::logWarning(sprintf('[OTel] Channel full, dropped %d span(s). Total dropped: %d', count($batch), $this->dropped));
-                $this->loggedDrop = true;
-            }
+            self::logWarning(sprintf('[OTel] Channel full, dropped %d span(s)', count($batch)));
         }
     }
 
@@ -195,7 +194,7 @@ class ChannelBatchSpanProcessor implements SpanProcessorInterface
                 $this->pushBatch();
             }
 
-            $this->loggedDrop = false;
+
         });
     }
 
