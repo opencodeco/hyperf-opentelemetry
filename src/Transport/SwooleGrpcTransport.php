@@ -22,6 +22,9 @@ final class SwooleGrpcTransport implements TransportInterface
 
     private ?Client $client = null;
 
+    /**
+     * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
+     */
     public function __construct(
         private readonly string $host,
         private readonly int $port,

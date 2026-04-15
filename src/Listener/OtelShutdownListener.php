@@ -30,7 +30,7 @@ class OtelShutdownListener implements ListenerInterface
 
     public function process(object $event): void
     {
-        Coroutine::create(function () {
+        Coroutine::create(function (): void {
             try {
                 $this->tracerProvider->shutdown();
             } catch (Throwable $e) {

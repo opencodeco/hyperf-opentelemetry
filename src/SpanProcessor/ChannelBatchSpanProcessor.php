@@ -32,15 +32,12 @@ class ChannelBatchSpanProcessor implements SpanProcessorInterface
 
     private bool $closed = false;
 
-    private bool $async;
-
-    private ?Channel $channel = null;
+    private Channel $channel;
 
     private ?int $timerId = null;
 
     /** @var list<SpanDataInterface> */
     private array $batch = [];
-
 
     public function __construct(
         private readonly SpanExporterInterface $exporter,
@@ -49,13 +46,9 @@ class ChannelBatchSpanProcessor implements SpanProcessorInterface
         private readonly float $flushInterval = self::DEFAULT_FLUSH_INTERVAL,
     ) {
         $this->exportContext = Context::getCurrent();
-        $this->async = Coroutine::id() > 0;
-
-        if ($this->async) {
-            $this->channel = new Channel($channelCapacity);
-            $this->startConsumer();
-            $this->startFlushTimer();
-        }
+        $this->channel = new Channel($channelCapacity);
+        $this->startConsumer();
+        $this->startFlushTimer();
     }
 
     public function onStart(ReadWriteSpanInterface $span, ContextInterface $parentContext): void
@@ -74,11 +67,6 @@ class ChannelBatchSpanProcessor implements SpanProcessorInterface
 
         $spanData = $span->toSpanData();
 
-        if (! $this->async) {
-            $this->exportSync([$spanData]);
-            return;
-        }
-
         $this->batch[] = $spanData;
 
         if (count($this->batch) >= $this->maxBatchSize) {
@@ -93,12 +81,7 @@ class ChannelBatchSpanProcessor implements SpanProcessorInterface
         }
 
         if ($this->batch !== []) {
-            if ($this->async) {
-                $this->pushBatch();
-            } else {
-                $this->exportSync($this->batch);
-                $this->batch = [];
-            }
+            $this->pushBatch();
         }
 
         return $this->exporter->forceFlush($cancellation);
@@ -112,24 +95,17 @@ class ChannelBatchSpanProcessor implements SpanProcessorInterface
 
         $this->closed = true;
 
-        if ($this->async) {
-            if ($this->batch !== []) {
-                $this->pushBatch();
-            }
-            $this->channel?->close();
-        } else {
-            if ($this->batch !== []) {
-                $this->exportSync($this->batch);
-                $this->batch = [];
-            }
+        if ($this->batch !== []) {
+            $this->pushBatch();
         }
+        $this->channel->close();
 
         return $this->exporter->shutdown($cancellation);
     }
 
     private function pushBatch(): void
     {
-        if ($this->batch === [] || $this->channel === null) {
+        if ($this->batch === []) {
             return;
         }
 
@@ -151,7 +127,7 @@ class ChannelBatchSpanProcessor implements SpanProcessorInterface
 
         Coroutine::create(static function () use ($channel, $exporter, $exportContext): void {
             while (true) {
-                /** @var list<SpanDataInterface>|false $batch */
+                /** @var false|list<SpanDataInterface> $batch */
                 $batch = $channel->pop();
 
                 if ($batch === false) {
@@ -185,23 +161,6 @@ class ChannelBatchSpanProcessor implements SpanProcessorInterface
             if ($this->batch !== []) {
                 $this->pushBatch();
             }
-
-
         });
-    }
-
-    /**
-     * @param list<SpanDataInterface> $spans
-     */
-    private function exportSync(array $spans): void
-    {
-        $scope = $this->exportContext->activate();
-        try {
-            $this->exporter->export($spans)->await();
-        } catch (Throwable $e) {
-            self::logError('Unhandled export error', ['exception' => $e]);
-        } finally {
-            $scope->detach();
-        }
     }
 }

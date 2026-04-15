@@ -13,6 +13,8 @@ use OpenTelemetry\SDK\Trace\SpanDataInterface;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
+use Swoole\Coroutine;
+use Swoole\Coroutine\Channel;
 
 /**
  * @internal
@@ -147,7 +149,7 @@ class DeferSpanProcessorTest extends TestCase
         $processor = new DeferSpanProcessor($exporter);
         $spanData = $this->createMock(SpanDataInterface::class);
 
-        $channel = new \Swoole\Coroutine\Channel(1);
+        $channel = new Channel(1);
 
         \Hyperf\Coroutine\Coroutine::create(function () use ($processor, $spanData, $channel): void {
             Context::set(ServerRequestInterface::class, $this->createMock(ServerRequestInterface::class));
@@ -158,7 +160,7 @@ class DeferSpanProcessorTest extends TestCase
         // Wait for sub-coroutine + its defer to complete
         $channel->pop(1.0);
         // Small yield to allow defer to execute
-        \Swoole\Coroutine::sleep(0.01);
+        Coroutine::sleep(0.01);
 
         $this->assertCount(1, $exported);
         $this->assertSame($spanData, $exported[0]);

@@ -11,6 +11,7 @@ use OpenTelemetry\SDK\Trace\ReadableSpanInterface;
 use OpenTelemetry\SDK\Trace\SpanDataInterface;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use PHPUnit\Framework\TestCase;
+use Swoole\Coroutine;
 
 /**
  * @internal
@@ -40,14 +41,14 @@ class ChannelBatchSpanProcessorTest extends TestCase
         $processor->onEnd($this->createSampledSpan());
 
         // Give consumer time to process (should have nothing to process)
-        \Swoole\Coroutine::sleep(0.05);
+        Coroutine::sleep(0.05);
         $this->assertCount(0, $exported);
 
         // Send 3rd span — batch full, should push to channel
         $processor->onEnd($this->createSampledSpan());
 
         // Give consumer coroutine time to process
-        \Swoole\Coroutine::sleep(0.05);
+        Coroutine::sleep(0.05);
         $this->assertCount(3, $exported);
 
         $processor->shutdown();
@@ -73,7 +74,7 @@ class ChannelBatchSpanProcessorTest extends TestCase
 
         $processor->onEnd($span);
 
-        \Swoole\Coroutine::sleep(0.05);
+        Coroutine::sleep(0.05);
         $processor->shutdown();
     }
 
@@ -83,7 +84,7 @@ class ChannelBatchSpanProcessorTest extends TestCase
         $exporter = $this->createMock(SpanExporterInterface::class);
         $exporter->method('export')
             ->willReturnCallback(function () use (&$exportCount) {
-                $exportCount++;
+                ++$exportCount;
                 return new CompletedFuture(true);
             });
         $exporter->method('shutdown')->willReturn(true);
@@ -101,7 +102,7 @@ class ChannelBatchSpanProcessorTest extends TestCase
         $processor->onEnd($this->createSampledSpan());
         $processor->onEnd($this->createSampledSpan());
 
-        \Swoole\Coroutine::sleep(0.05);
+        Coroutine::sleep(0.05);
         $this->assertSame(0, $exportCount);
     }
 
@@ -162,7 +163,7 @@ class ChannelBatchSpanProcessorTest extends TestCase
         $this->assertTrue($result);
 
         // Give consumer time to process
-        \Swoole\Coroutine::sleep(0.05);
+        Coroutine::sleep(0.05);
         $this->assertCount(2, $exported);
 
         $processor->shutdown();
@@ -210,7 +211,7 @@ class ChannelBatchSpanProcessorTest extends TestCase
         $processor->shutdown();
 
         // Give consumer time to drain
-        \Swoole\Coroutine::sleep(0.05);
+        Coroutine::sleep(0.05);
         $this->assertCount(2, $exported);
     }
 
@@ -220,7 +221,7 @@ class ChannelBatchSpanProcessorTest extends TestCase
         // Exporter that blocks to simulate slow export
         $exporter->method('export')
             ->willReturnCallback(function () {
-                \Swoole\Coroutine::sleep(1.0);
+                Coroutine::sleep(1.0);
                 return new CompletedFuture(true);
             });
 
@@ -234,7 +235,7 @@ class ChannelBatchSpanProcessorTest extends TestCase
 
         // First span → pushes batch → channel accepts
         $processor->onEnd($this->createSampledSpan());
-        \Swoole\Coroutine::sleep(0.01);
+        Coroutine::sleep(0.01);
 
         // Second span → pushes batch → consumer is busy, channel full → should drop gracefully
         $processor->onEnd($this->createSampledSpan());
