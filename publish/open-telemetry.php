@@ -14,8 +14,11 @@ use Hyperf\OpenTelemetry\Factory\Trace\Exporter\OtlpGrpcTraceExporterFactory;
 use Hyperf\OpenTelemetry\Factory\Trace\Exporter\OtlpHttpTraceExporterFactory;
 use Hyperf\OpenTelemetry\Factory\Trace\Exporter\StdoutTraceExporterFactory;
 use Hyperf\OpenTelemetry\Factory\Trace\Processor\BatchSpanProcessorFactory;
+use Hyperf\OpenTelemetry\Factory\Trace\Processor\ChannelBatchSpanProcessorFactory;
+use Hyperf\OpenTelemetry\Factory\Trace\Processor\DeferSpanProcessorFactory;
 use Hyperf\OpenTelemetry\Factory\Trace\Processor\SimpleSpanProcessorFactory;
 use Hyperf\OpenTelemetry\Factory\Trace\Sampler\AlwaysOnSamplerFactory;
+use Hyperf\OpenTelemetry\SpanProcessor\ChannelBatchSpanProcessor;
 use OpenTelemetry\SDK\Common\Export\TransportFactoryInterface;
 use OpenTelemetry\SDK\Logs\Processor\BatchLogRecordProcessor;
 use OpenTelemetry\SDK\Metrics\Data\Temporality;
@@ -77,11 +80,22 @@ return [
                     'schedule_delay_ms' => BatchSpanProcessor::DEFAULT_SCHEDULE_DELAY,
                     'export_timeout_ms' => BatchSpanProcessor::DEFAULT_EXPORT_TIMEOUT,
                     'max_export_batch_size' => BatchSpanProcessor::DEFAULT_MAX_EXPORT_BATCH_SIZE,
-                    'auto_flush' => false,
+                    'auto_flush' => true,
                 ],
             ],
             'simple' => [
                 'driver' => SimpleSpanProcessorFactory::class,
+            ],
+            'defer' => [
+                'driver' => DeferSpanProcessorFactory::class,
+            ],
+            'channel' => [
+                'driver' => ChannelBatchSpanProcessorFactory::class,
+                'options' => [
+                    'max_batch_size' => ChannelBatchSpanProcessor::DEFAULT_MAX_EXPORT_BATCH_SIZE,
+                    'channel_capacity' => ChannelBatchSpanProcessor::DEFAULT_CHANNEL_CAPACITY,
+                    'flush_interval' => ChannelBatchSpanProcessor::DEFAULT_FLUSH_INTERVAL,
+                ],
             ],
         ],
         'samplers' => [

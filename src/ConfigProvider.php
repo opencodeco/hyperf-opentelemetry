@@ -42,7 +42,6 @@ class ConfigProvider
             ],
             'listeners' => [
                 Listener\MetricFlushListener::class,
-                Listener\TraceFlushListener::class,
                 Listener\OtelShutdownListener::class,
                 Listener\DbQueryExecutedListener::class,
             ],

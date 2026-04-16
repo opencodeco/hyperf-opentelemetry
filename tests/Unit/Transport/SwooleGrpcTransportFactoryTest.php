@@ -8,6 +8,7 @@ use Hyperf\OpenTelemetry\Transport\SwooleGrpcTransportFactory;
 use InvalidArgumentException;
 use OpenTelemetry\Contrib\Otlp\ContentTypes;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 /**
  * @internal
@@ -114,7 +115,7 @@ class SwooleGrpcTransportFactoryTest extends TestCase
         $this->assertSame(ContentTypes::PROTOBUF, $transport->contentType());
 
         // Use reflection to verify compression was normalized to null
-        $reflection = new \ReflectionClass($transport);
+        $reflection = new ReflectionClass($transport);
         $compressionProp = $reflection->getProperty('compression');
         $this->assertNull($compressionProp->getValue($transport));
     }

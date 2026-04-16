@@ -39,6 +39,10 @@ class DbQueryExecutedListener extends AbstractInstrumenter implements ListenerIn
         return 'db_query';
     }
 
+    /**
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     */
     protected function onQueryExecuted(QueryExecuted $event): void
     {
         if (! $this->isTelemetryEnabled()) {

@@ -25,7 +25,11 @@ final class SwooleGrpcTransportFactory implements TransportFactoryInterface
     ): TransportInterface {
         if ($contentType !== ContentTypes::PROTOBUF) {
             throw new InvalidArgumentException(
-                sprintf('Unsupported content type "%s", gRPC transport supports only %s', $contentType, ContentTypes::PROTOBUF)
+                sprintf(
+                    'Unsupported content type "%s", gRPC transport supports only %s',
+                    $contentType,
+                    ContentTypes::PROTOBUF
+                )
             );
         }
 
