@@ -22,17 +22,19 @@ class ChannelBatchSpanProcessor implements SpanProcessorInterface
 {
     use LogsMessagesTrait;
 
-    public const DEFAULT_FLUSH_INTERVAL = 5000;
+    public const DEFAULT_FLUSH_INTERVAL = 5.0;
 
     public const DEFAULT_CHANNEL_CAPACITY = 128;
 
     public const DEFAULT_MAX_EXPORT_BATCH_SIZE = 512;
 
-    private ContextInterface $exportContext;
+    private ?ContextInterface $exportContext = null;
 
     private bool $closed = false;
 
-    private Channel $channel;
+    private bool $initialized = false;
+
+    private ?Channel $channel = null;
 
     private ?int $timerId = null;
 
@@ -42,11 +44,20 @@ class ChannelBatchSpanProcessor implements SpanProcessorInterface
     public function __construct(
         private readonly SpanExporterInterface $exporter,
         private readonly int $maxBatchSize = self::DEFAULT_MAX_EXPORT_BATCH_SIZE,
-        int $channelCapacity = self::DEFAULT_CHANNEL_CAPACITY,
+        private readonly int $channelCapacity = self::DEFAULT_CHANNEL_CAPACITY,
         private readonly float $flushInterval = self::DEFAULT_FLUSH_INTERVAL,
     ) {
+    }
+
+    private function ensureInitialized(): void
+    {
+        if ($this->initialized) {
+            return;
+        }
+
+        $this->initialized = true;
         $this->exportContext = Context::getCurrent();
-        $this->channel = new Channel($channelCapacity);
+        $this->channel = new Channel($this->channelCapacity);
         $this->startConsumer();
         $this->startFlushTimer();
     }
@@ -64,6 +75,8 @@ class ChannelBatchSpanProcessor implements SpanProcessorInterface
         if (! $span->getContext()->isSampled()) {
             return;
         }
+
+        $this->ensureInitialized();
 
         $spanData = $span->toSpanData();
 
@@ -98,14 +111,14 @@ class ChannelBatchSpanProcessor implements SpanProcessorInterface
         if ($this->batch !== []) {
             $this->pushBatch();
         }
-        $this->channel->close();
+        $this->channel?->close();
 
         return $this->exporter->shutdown($cancellation);
     }
 
     private function pushBatch(): void
     {
-        if ($this->batch === []) {
+        if ($this->batch === [] || $this->channel === null) {
             return;
         }
 
