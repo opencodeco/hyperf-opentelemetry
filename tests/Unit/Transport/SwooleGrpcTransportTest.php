@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Transport;
 
+use Closure;
 use Hyperf\OpenTelemetry\Transport\SwooleGrpcTransport;
 use OpenTelemetry\Contrib\Otlp\ContentTypes;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use RuntimeException;
 use Swoole\Coroutine\Http2\Client;
+use Swoole\Http2\Response;
 
 /**
  * @internal
@@ -68,20 +70,56 @@ class SwooleGrpcTransportTest extends TestCase
 
     public function testSendResetsClientWhenStreamIdIsFalse(): void
     {
-        $transport = $this->makeTransport(timeout: 0.05);
+        $stale = $this->mockClient();
+        $stale->errMsg = 'broken pipe';
+        $stale->method('send')->willReturn(false);
+        $stale->method('close')->willReturn(true);
 
-        $mock = $this->mockConnectedClient();
-        $mock->errMsg = 'broken pipe';
-        $mock->method('send')->willReturn(false);
-        $mock->method('close')->willReturn(true);
+        // Second attempt also fails — deterministic, no real network call.
+        $second = $this->mockClient();
+        $second->errMsg = 'broken pipe';
+        $second->method('send')->willReturn(false);
+        $second->method('close')->willReturn(true);
 
-        $reflection = $this->injectClient($transport, $mock);
+        $calls = 0;
+        $transport = $this->makeTransport(
+            timeout: 0.05,
+            clientFactory: function () use ($stale, $second, &$calls): Client {
+                return $calls++ === 0 ? $stale : $second;
+            }
+        );
 
         $future = $transport->send('test payload');
 
+        $reflection = new ReflectionClass($transport);
         $this->assertNull($reflection->getProperty('client')->getValue($transport));
         $this->expectException(RuntimeException::class);
         $future->await();
+    }
+
+    public function testSendRetriesAndSucceedsAfterInitialSendFailure(): void
+    {
+        $stale = $this->mockClient();
+        $stale->errMsg = 'broken pipe';
+        $stale->method('send')->willReturn(false);
+        $stale->method('close')->willReturn(true);
+
+        $response = new Response();
+        $response->headers = ['grpc-status' => '0'];
+
+        $fresh = $this->mockClient();
+        $fresh->method('send')->willReturn(1);
+        $fresh->method('recv')->willReturn($response);
+
+        $calls = 0;
+        $transport = $this->makeTransport(
+            clientFactory: function () use ($stale, $fresh, &$calls): Client {
+                return $calls++ === 0 ? $stale : $fresh;
+            }
+        );
+
+        $future = $transport->send('test payload');
+        $this->assertNull($future->await());
     }
 
     public function testSendResetsClientWhenRecvReturnsFalse(): void
@@ -118,13 +156,14 @@ class SwooleGrpcTransportTest extends TestCase
         $transport->send('test payload');
     }
 
-    private function makeTransport(float $timeout = 10.0): SwooleGrpcTransport
+    private function makeTransport(float $timeout = 10.0, ?Closure $clientFactory = null): SwooleGrpcTransport
     {
         return new SwooleGrpcTransport(
             host: 'localhost',
             port: 4317,
             method: '/opentelemetry.proto.collector.trace.v1.TraceService/Export',
             timeout: $timeout,
+            clientFactory: $clientFactory,
         );
     }
 
@@ -133,6 +172,18 @@ class SwooleGrpcTransportTest extends TestCase
         $reflection = new ReflectionClass($transport);
         $reflection->getProperty('client')->setValue($transport, $client);
         return $reflection;
+    }
+
+    private function mockClient(bool $connectSucceeds = true): Client
+    {
+        $mock = $this->getMockBuilder(Client::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mock->connected = false;
+        $mock->errMsg = '';
+        $mock->method('set')->willReturn(true);
+        $mock->method('connect')->willReturn($connectSucceeds);
+        return $mock;
     }
 
     private function mockConnectedClient(): Client

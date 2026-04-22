@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hyperf\OpenTelemetry\Transport;
 
+use Closure;
 use OpenTelemetry\Contrib\Otlp\ContentTypes;
 use OpenTelemetry\SDK\Common\Export\TransportFactoryInterface;
 use OpenTelemetry\SDK\Common\Export\TransportInterface;
@@ -33,6 +34,7 @@ final class SwooleGrpcTransport implements TransportInterface
         private readonly float $timeout = 10.0,
         private readonly bool $ssl = false,
         private readonly ?string $compression = null,
+        private readonly ?Closure $clientFactory = null,
     ) {
     }
 
@@ -91,7 +93,7 @@ final class SwooleGrpcTransport implements TransportInterface
             return new CompletedFuture(null);
         }
 
-        return new ErrorFuture($lastError ?? new RuntimeException('Failed to send gRPC request'));
+        return new ErrorFuture($lastError);
     }
 
     public function shutdown(?CancellationInterface $cancellation = null): bool
@@ -124,7 +126,9 @@ final class SwooleGrpcTransport implements TransportInterface
     private function getClient(): Client
     {
         if ($this->client === null || ! $this->client->connected) {
-            $this->client = new Client($this->host, $this->port, $this->ssl);
+            $factory = $this->clientFactory
+                ?? static fn (string $h, int $p, bool $s): Client => new Client($h, $p, $s);
+            $this->client = $factory($this->host, $this->port, $this->ssl);
             $this->client->set([
                 'timeout' => $this->timeout,
             ]);
