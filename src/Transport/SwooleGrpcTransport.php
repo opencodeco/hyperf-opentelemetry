@@ -47,28 +47,36 @@ final class SwooleGrpcTransport implements TransportInterface
             return new ErrorFuture(new RuntimeException('Transport is closed'));
         }
 
-        try {
-            $client = $this->getClient();
+        $request = new Request();
+        $request->method = 'POST';
+        $request->path = $this->method;
+        $request->headers = $this->buildHeaders();
+        $request->data = $this->packMessage($this->compress($payload));
 
-            $data = $this->compress($payload);
+        $lastError = null;
+        for ($attempt = 0; $attempt < 2; ++$attempt) {
+            try {
+                $client = $this->getClient();
+                $streamId = $client->send($request);
 
-            $request = new Request();
-            $request->method = 'POST';
-            $request->path = $this->method;
-            $request->headers = $this->buildHeaders();
-            $request->data = $this->packMessage($data);
-
-            $streamId = $client->send($request);
-
-            if ($streamId === false || $streamId <= 0) {
-                return new ErrorFuture(new RuntimeException(
-                    'Failed to send gRPC request: ' . ($client->errMsg ?: 'unknown error')
-                ));
+                if ($streamId === false || $streamId <= 0) {
+                    $lastError = new RuntimeException(
+                        'Failed to send gRPC request: ' . ($client->errMsg ?: 'unknown error')
+                    );
+                    $this->resetClient();
+                    continue;
+                }
+            } catch (Throwable $e) {
+                $lastError = $e;
+                $this->resetClient();
+                continue;
             }
 
+            // Past this point the stream is established — do not retry to avoid duplicate exports.
             $response = $client->recv($this->timeout);
 
             if ($response === false) {
+                $this->resetClient();
                 return new ErrorFuture(new RuntimeException(
                     'Failed to receive gRPC response: ' . ($client->errMsg ?: 'timeout')
                 ));
@@ -81,9 +89,9 @@ final class SwooleGrpcTransport implements TransportInterface
             }
 
             return new CompletedFuture(null);
-        } catch (Throwable $e) {
-            return new ErrorFuture($e);
         }
+
+        return new ErrorFuture($lastError ?? new RuntimeException('Failed to send gRPC request'));
     }
 
     public function shutdown(?CancellationInterface $cancellation = null): bool
@@ -105,6 +113,12 @@ final class SwooleGrpcTransport implements TransportInterface
     public function forceFlush(?CancellationInterface $cancellation = null): bool
     {
         return ! $this->closed;
+    }
+
+    private function resetClient(): void
+    {
+        $this->client?->close();
+        $this->client = null;
     }
 
     private function getClient(): Client
