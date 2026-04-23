@@ -36,4 +36,17 @@ class OtlpGrpcMetricExporterFactoryTest extends TestCase
 
         $this->assertInstanceOf(MetricExporterInterface::class, $exporter);
     }
+
+    public function testMakeWithDefaultEndpoint(): void
+    {
+        $config = $this->createMock(ConfigInterface::class);
+        $config->method('get')
+            ->with('open-telemetry.metrics.exporters.otlp_grpc.options', [])
+            ->willReturn([]);
+
+        $factory = new OtlpGrpcMetricExporterFactory($config);
+        $exporter = $factory->make();
+
+        $this->assertInstanceOf(MetricExporterInterface::class, $exporter);
+    }
 }
