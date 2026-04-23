@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hyperf\OpenTelemetry\Listener;
 
+use Hyperf\Command\Event\AfterExecute;
 use Hyperf\Contract\StdoutLoggerInterface;
 use Hyperf\Coroutine\Coroutine;
 use Hyperf\Event\Contract\ListenerInterface;
@@ -25,6 +26,7 @@ class OtelShutdownListener implements ListenerInterface
     {
         return [
             OnWorkerExit::class,
+            AfterExecute::class,
         ];
     }
 

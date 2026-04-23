@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Listener;
 
+use Hyperf\Command\Event\AfterExecute;
 use Hyperf\Contract\StdoutLoggerInterface;
 use Hyperf\Event\Contract\ListenerInterface;
 use Hyperf\Framework\Event\OnWorkerExit;
@@ -36,7 +37,7 @@ class OtelShutdownListenerTest extends TestCase
             $this->createMock(TracerProviderInterface::class),
             $this->createMock(StdoutLoggerInterface::class)
         );
-        $this->assertSame([OnWorkerExit::class], $listener->listen());
+        $this->assertSame([OnWorkerExit::class, AfterExecute::class], $listener->listen());
     }
 
     public function testProcessCallsShutdownInsideCoroutine(): void
