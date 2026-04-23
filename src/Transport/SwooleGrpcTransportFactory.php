@@ -11,6 +11,13 @@ use OpenTelemetry\SDK\Common\Export\TransportInterface;
 
 final class SwooleGrpcTransportFactory implements TransportFactoryInterface
 {
+    /**
+     * Note: $cacert, $cert, and $key are accepted to satisfy the TransportFactoryInterface
+     * contract but are not implemented in this transport. TLS certificates are not supported;
+     * use the https:// or grpcs:// scheme for basic TLS.
+     *
+     * @param null|mixed $compression
+     */
     public function create(
         string $endpoint,
         string $contentType = ContentTypes::PROTOBUF,
@@ -45,6 +52,13 @@ final class SwooleGrpcTransportFactory implements TransportFactoryInterface
             $compressionType = null;
         }
 
+        $supportedCompression = [null, TransportFactoryInterface::COMPRESSION_GZIP, TransportFactoryInterface::COMPRESSION_DEFLATE];
+        if (! in_array($compressionType, $supportedCompression, true)) {
+            throw new InvalidArgumentException(
+                sprintf('Unsupported compression type "%s"', $compressionType)
+            );
+        }
+
         return new SwooleGrpcTransport(
             host: $parsed['host'],
             port: $parsed['port'],
@@ -53,6 +67,8 @@ final class SwooleGrpcTransportFactory implements TransportFactoryInterface
             timeout: $timeout,
             ssl: $parsed['ssl'],
             compression: $compressionType,
+            retryDelay: $retryDelay,
+            maxRetries: $maxRetries,
         );
     }
 

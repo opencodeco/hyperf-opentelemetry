@@ -6,6 +6,7 @@ namespace Hyperf\OpenTelemetry\Factory\Trace\Exporter;
 
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\OpenTelemetry\Transport\SwooleGrpcTransportFactory;
+use OpenTelemetry\Contrib\Otlp\ContentTypes;
 use OpenTelemetry\Contrib\Otlp\SpanExporter;
 use OpenTelemetry\SDK\Common\Export\TransportFactoryInterface;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
@@ -23,12 +24,12 @@ class OtlpGrpcTraceExporterFactory implements TraceExporterFactoryInterface
     {
         $options = $this->config->get('open-telemetry.traces.exporters.otlp_grpc.options', []);
 
-        $endpoint = rtrim($options['endpoint'], '/') . self::GRPC_METHOD;
+        $endpoint = rtrim($options['endpoint'] ?? 'http://localhost:4317', '/') . self::GRPC_METHOD;
 
         return new SpanExporter(
             (new SwooleGrpcTransportFactory())->create(
                 endpoint: $endpoint,
-                contentType: 'application/x-protobuf',
+                contentType: ContentTypes::PROTOBUF,
                 headers: $options['headers'] ?? [],
                 compression: $options['compression'] ?? TransportFactoryInterface::COMPRESSION_GZIP,
                 timeout: $options['timeout'] ?? 10,

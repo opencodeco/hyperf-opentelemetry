@@ -119,4 +119,35 @@ class SwooleGrpcTransportFactoryTest extends TestCase
         $compressionProp = $reflection->getProperty('compression');
         $this->assertNull($compressionProp->getValue($transport));
     }
+
+    public function testCreateWithRetryParameters(): void
+    {
+        $factory = new SwooleGrpcTransportFactory();
+
+        $transport = $factory->create(
+            endpoint: 'http://localhost:4317/opentelemetry.proto.collector.trace.v1.TraceService/Export',
+            contentType: ContentTypes::PROTOBUF,
+            retryDelay: 200,
+            maxRetries: 5,
+        );
+
+        $reflection = new ReflectionClass($transport);
+
+        $this->assertSame(200, $reflection->getProperty('retryDelay')->getValue($transport));
+        $this->assertSame(5, $reflection->getProperty('maxRetries')->getValue($transport));
+    }
+
+    public function testCreateThrowsExceptionForUnsupportedCompression(): void
+    {
+        $factory = new SwooleGrpcTransportFactory();
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unsupported compression type "br"');
+
+        $factory->create(
+            endpoint: 'http://localhost:4317/opentelemetry.proto.collector.trace.v1.TraceService/Export',
+            contentType: ContentTypes::PROTOBUF,
+            compression: 'br',
+        );
+    }
 }

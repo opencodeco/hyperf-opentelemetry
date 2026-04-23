@@ -49,19 +49,6 @@ class ChannelBatchSpanProcessor implements SpanProcessorInterface
     ) {
     }
 
-    private function ensureInitialized(): void
-    {
-        if ($this->initialized) {
-            return;
-        }
-
-        $this->initialized = true;
-        $this->exportContext = Context::getCurrent();
-        $this->channel = new Channel($this->channelCapacity);
-        $this->startConsumer();
-        $this->startFlushTimer();
-    }
-
     public function onStart(ReadWriteSpanInterface $span, ContextInterface $parentContext): void
     {
     }
@@ -114,6 +101,19 @@ class ChannelBatchSpanProcessor implements SpanProcessorInterface
         $this->channel?->close();
 
         return $this->exporter->shutdown($cancellation);
+    }
+
+    private function ensureInitialized(): void
+    {
+        if ($this->initialized) {
+            return;
+        }
+
+        $this->initialized = true;
+        $this->exportContext = Context::getCurrent();
+        $this->channel = new Channel($this->channelCapacity);
+        $this->startConsumer();
+        $this->startFlushTimer();
     }
 
     private function pushBatch(): void

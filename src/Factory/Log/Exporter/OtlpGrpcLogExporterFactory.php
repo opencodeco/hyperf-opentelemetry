@@ -6,6 +6,7 @@ namespace Hyperf\OpenTelemetry\Factory\Log\Exporter;
 
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\OpenTelemetry\Transport\SwooleGrpcTransportFactory;
+use OpenTelemetry\Contrib\Otlp\ContentTypes;
 use OpenTelemetry\Contrib\Otlp\LogsExporter;
 use OpenTelemetry\SDK\Common\Export\TransportFactoryInterface;
 use OpenTelemetry\SDK\Logs\LogRecordExporterInterface;
@@ -28,7 +29,7 @@ class OtlpGrpcLogExporterFactory implements LogExporterFactoryInterface
         return new LogsExporter(
             (new SwooleGrpcTransportFactory())->create(
                 endpoint: $endpoint,
-                contentType: 'application/x-protobuf',
+                contentType: ContentTypes::PROTOBUF,
                 headers: $options['headers'] ?? [],
                 compression: $options['compression'] ?? TransportFactoryInterface::COMPRESSION_GZIP,
                 timeout: $options['timeout'] ?? 10,

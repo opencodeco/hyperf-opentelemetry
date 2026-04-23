@@ -34,4 +34,17 @@ class OtlpGrpcTraceExporterFactoryTest extends TestCase
 
         $this->assertInstanceOf(SpanExporterInterface::class, $exporter);
     }
+
+    public function testMakeWithDefaultEndpoint(): void
+    {
+        $config = $this->createMock(ConfigInterface::class);
+        $config->method('get')
+            ->with('open-telemetry.traces.exporters.otlp_grpc.options', [])
+            ->willReturn([]);
+
+        $factory = new OtlpGrpcTraceExporterFactory($config);
+        $exporter = $factory->make();
+
+        $this->assertInstanceOf(SpanExporterInterface::class, $exporter);
+    }
 }
