@@ -70,14 +70,30 @@ trait OtlpHttpClientAssertions
      */
     protected function assertFallsBackOutsideAnActiveCoroutine(callable $make): void
     {
-        $this->withDefaultDiscovery(function () use ($make): void {
+        $this->withDiscoverers([HyperfGuzzle::class, Guzzle::class], function () use ($make): void {
             $this->withContainer($this->poolContainer([]), function () use ($make): void {
                 $exporter = $make($this->builder(extensionLoaded: true, coroutineActive: false));
                 $client = $this->transportClient($exporter);
                 $this->assertInstanceOf(CoroutineHttpClient::class, $client);
-                $this->assertNotInstanceOf(CoroutineHandler::class, $this->guzzleHandler($client->client()));
+                $handler = $this->guzzleHandler($client->client());
+                $this->assertNotInstanceOf(CoroutineHandler::class, $handler);
+                $this->assertSame($this->blockingHandlerClass(), $handler::class);
             });
         });
+    }
+
+    protected function withDiscoverers(array $discoverers, callable $callback): mixed
+    {
+        Discovery::setDiscoverers($discoverers);
+
+        try {
+            return $callback();
+        } finally {
+            Discovery::setDiscoverers([
+                HyperfGuzzle::class,
+                Guzzle::class,
+            ]);
+        }
     }
 
     protected function withDefaultDiscovery(callable $callback): mixed
@@ -146,6 +162,11 @@ trait OtlpHttpClientAssertions
     protected function handler(object $transportOrExporter): object
     {
         return $this->guzzleHandler($this->transportClient($transportOrExporter));
+    }
+
+    private function blockingHandlerClass(): string
+    {
+        return $this->guzzleHandler((new Guzzle())->create(['timeout' => 10]))::class;
     }
 
     private function transportClient(object $transportOrExporter): object

@@ -21,6 +21,8 @@ final class SwooleGrpcTransport implements TransportInterface
 {
     private bool $closed = false;
 
+    private bool $requestSent = false;
+
     private ?Client $client = null;
 
     /**
@@ -89,6 +91,7 @@ final class SwooleGrpcTransport implements TransportInterface
 
     private function executeRequest(string $payload): FutureInterface
     {
+        $this->requestSent = false;
         $client = $this->getClient();
         $data = $this->compress($payload);
 
@@ -106,6 +109,7 @@ final class SwooleGrpcTransport implements TransportInterface
             );
         }
 
+        $this->requestSent = true;
         $response = $this->callClient(static fn () => $client->recv($timeout));
         if ($response === false) {
             throw new RuntimeException(
@@ -172,11 +176,12 @@ final class SwooleGrpcTransport implements TransportInterface
 
     private function isRetryable(Throwable $error): bool
     {
+        if ($this->requestSent) {
+            return false;
+        }
+
         $message = strtolower($error->getMessage());
-        if (
-            str_starts_with($message, 'failed to send grpc request:')
-            || str_starts_with($message, 'failed to receive grpc response:')
-        ) {
+        if (str_starts_with($message, 'failed to send grpc request:')) {
             return true;
         }
 

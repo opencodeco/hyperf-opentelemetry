@@ -154,6 +154,28 @@ class SwooleGrpcTransportTest extends TestCase
         $this->assertNull($this->storedClient($transport));
     }
 
+    public function testSendDoesNotRetryAfterTheRequestWasWritten(): void
+    {
+        $client = new FakeHttp2Client(streamId: 1, error: 'Broken pipe', response: false);
+        $created = 0;
+        $transport = $this->transport(function () use (&$created, $client): Client {
+            ++$created;
+
+            return $client;
+        });
+
+        try {
+            $transport->send('payload')->await();
+            $this->fail('Expected the receive failure to surface');
+        } catch (RuntimeException $e) {
+            $this->assertStringContainsString('Broken pipe', $e->getMessage());
+        }
+
+        $this->assertSame(1, $created);
+        $this->assertTrue($client->wasClosed);
+        $this->assertNull($this->storedClient($transport));
+    }
+
     public function testSendSuppressesOnlyServerLastStreamIdDeprecation(): void
     {
         $seen = [];
