@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Hyperf\OpenTelemetry\Factory\Log\Exporter;
 
 use Hyperf\Contract\ConfigInterface;
+use Hyperf\OpenTelemetry\Support\OtlpHttpTransportBuilder;
 use OpenTelemetry\Contrib\Otlp\LogsExporter;
-use OpenTelemetry\Contrib\Otlp\OtlpHttpTransportFactory;
 use OpenTelemetry\SDK\Common\Export\TransportFactoryInterface;
 use OpenTelemetry\SDK\Logs\LogRecordExporterInterface;
 
@@ -14,6 +14,7 @@ class OtlpHttpLogExporterFactory implements LogExporterFactoryInterface
 {
     public function __construct(
         protected readonly ConfigInterface $config,
+        private readonly OtlpHttpTransportBuilder $transportBuilder = new OtlpHttpTransportBuilder(),
     ) {
     }
 
@@ -22,7 +23,7 @@ class OtlpHttpLogExporterFactory implements LogExporterFactoryInterface
         $options = $this->config->get('open-telemetry.logs.exporters.otlp_http.options', []);
 
         return new LogsExporter(
-            (new OtlpHttpTransportFactory())->create(
+            $this->transportBuilder->create(
                 endpoint: $options['endpoint'],
                 contentType: $options['content_type'] ?? 'application/x-protobuf',
                 headers: $options['headers'] ?? [],

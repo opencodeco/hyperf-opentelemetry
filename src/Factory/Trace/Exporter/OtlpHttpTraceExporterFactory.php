@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Hyperf\OpenTelemetry\Factory\Trace\Exporter;
 
 use Hyperf\Contract\ConfigInterface;
-use OpenTelemetry\Contrib\Otlp\OtlpHttpTransportFactory;
+use Hyperf\OpenTelemetry\Support\OtlpHttpTransportBuilder;
 use OpenTelemetry\Contrib\Otlp\SpanExporter;
 use OpenTelemetry\SDK\Common\Export\TransportFactoryInterface;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
@@ -14,6 +14,7 @@ class OtlpHttpTraceExporterFactory implements TraceExporterFactoryInterface
 {
     public function __construct(
         protected readonly ConfigInterface $config,
+        private readonly OtlpHttpTransportBuilder $transportBuilder = new OtlpHttpTransportBuilder(),
     ) {
     }
 
@@ -22,7 +23,7 @@ class OtlpHttpTraceExporterFactory implements TraceExporterFactoryInterface
         $options = $this->config->get('open-telemetry.traces.exporters.otlp_http.options', []);
 
         return new SpanExporter(
-            (new OtlpHttpTransportFactory())->create(
+            $this->transportBuilder->create(
                 endpoint: $options['endpoint'],
                 contentType: $options['content_type'] ?? 'application/x-protobuf',
                 headers: $options['headers'] ?? [],
