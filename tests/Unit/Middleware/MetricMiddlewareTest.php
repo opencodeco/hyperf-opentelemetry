@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Middleware;
 
 use Hyperf\Contract\ConfigInterface;
+use Hyperf\HttpMessage\Exception\HttpException;
 use Hyperf\OpenTelemetry\Instrumentation;
 use Hyperf\OpenTelemetry\Middleware\MetricMiddleware;
 use Hyperf\OpenTelemetry\Switcher;
@@ -222,16 +223,22 @@ class MetricMiddlewareTest extends TestCase
             )
             ->willReturn($this->histogram);
 
+        $expectedAttributes = [
+            HttpAttributes::HTTP_ROUTE => $path,
+            HttpAttributes::HTTP_REQUEST_METHOD => $method,
+        ];
+
+        if ($expectedStatusCode >= 500) {
+            $expectedAttributes[ErrorAttributes::ERROR_TYPE] = RuntimeException::class;
+        }
+
+        $expectedAttributes[HttpAttributes::HTTP_RESPONSE_STATUS_CODE] = $expectedStatusCode;
+
         $this->histogram->expects($this->once())
             ->method('record')
             ->with(
                 $this->greaterThan(0),
-                [
-                    HttpAttributes::HTTP_ROUTE => $path,
-                    HttpAttributes::HTTP_REQUEST_METHOD => $method,
-                    ErrorAttributes::ERROR_TYPE => RuntimeException::class,
-                    HttpAttributes::HTTP_RESPONSE_STATUS_CODE => $expectedStatusCode,
-                ]
+                $expectedAttributes
             );
 
         $middleware = new MetricMiddleware(
@@ -261,7 +268,180 @@ class MetricMiddlewareTest extends TestCase
                 'exceptionCode' => 1000,
                 'expectedStatusCode' => 500,
             ],
+            'Http server error code' => [
+                'exceptionCode' => 503,
+                'expectedStatusCode' => 503,
+            ],
         ];
+    }
+
+    public function testProcessWithValidationStatusException(): void
+    {
+        $path = '/api/users';
+        $method = 'POST';
+        $exception = new class('The given data was invalid.') extends RuntimeException {
+            public int $status = 422;
+        };
+
+        $this->uri->method('getPath')->willReturn($path);
+        $this->request->method('getMethod')->willReturn($method);
+
+        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler->expects($this->once())
+            ->method('handle')
+            ->willThrowException($exception);
+
+        $this->meter->method('createHistogram')->willReturn($this->histogram);
+
+        $this->histogram->expects($this->once())
+            ->method('record')
+            ->with(
+                $this->greaterThan(0),
+                [
+                    HttpAttributes::HTTP_ROUTE => $path,
+                    HttpAttributes::HTTP_REQUEST_METHOD => $method,
+                    HttpAttributes::HTTP_RESPONSE_STATUS_CODE => 422,
+                ]
+            );
+
+        $middleware = new MetricMiddleware(
+            $this->config,
+            $this->instrumentation,
+            $this->switcher
+        );
+
+        $this->expectException($exception::class);
+        $this->expectExceptionMessage('The given data was invalid.');
+
+        $middleware->process($this->request, $handler);
+    }
+
+    public function testProcessWithGetStatusCodeException(): void
+    {
+        $path = '/api/users';
+        $method = 'POST';
+        $exception = new class(409, 'Conflict') extends RuntimeException {
+            public function __construct(private readonly int $statusCode, string $message)
+            {
+                parent::__construct($message);
+            }
+
+            public function getStatusCode(): int
+            {
+                return $this->statusCode;
+            }
+        };
+
+        $this->uri->method('getPath')->willReturn($path);
+        $this->request->method('getMethod')->willReturn($method);
+
+        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler->expects($this->once())
+            ->method('handle')
+            ->willThrowException($exception);
+
+        $this->meter->method('createHistogram')->willReturn($this->histogram);
+
+        $this->histogram->expects($this->once())
+            ->method('record')
+            ->with(
+                $this->greaterThan(0),
+                [
+                    HttpAttributes::HTTP_ROUTE => $path,
+                    HttpAttributes::HTTP_REQUEST_METHOD => $method,
+                    HttpAttributes::HTTP_RESPONSE_STATUS_CODE => 409,
+                ]
+            );
+
+        $middleware = new MetricMiddleware(
+            $this->config,
+            $this->instrumentation,
+            $this->switcher
+        );
+
+        $this->expectException($exception::class);
+        $this->expectExceptionMessage('Conflict');
+
+        $middleware->process($this->request, $handler);
+    }
+
+    public function testProcessWithHttpException(): void
+    {
+        $path = '/api/missing';
+        $method = 'GET';
+        $exception = new HttpException(404, 'Not Found');
+
+        $this->uri->method('getPath')->willReturn($path);
+        $this->request->method('getMethod')->willReturn($method);
+
+        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler->expects($this->once())
+            ->method('handle')
+            ->willThrowException($exception);
+
+        $this->meter->method('createHistogram')->willReturn($this->histogram);
+
+        $this->histogram->expects($this->once())
+            ->method('record')
+            ->with(
+                $this->greaterThan(0),
+                [
+                    HttpAttributes::HTTP_ROUTE => $path,
+                    HttpAttributes::HTTP_REQUEST_METHOD => $method,
+                    HttpAttributes::HTTP_RESPONSE_STATUS_CODE => 404,
+                ]
+            );
+
+        $middleware = new MetricMiddleware(
+            $this->config,
+            $this->instrumentation,
+            $this->switcher
+        );
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionMessage('Not Found');
+
+        $middleware->process($this->request, $handler);
+    }
+
+    public function testProcessWithServerErrorKeepsErrorType(): void
+    {
+        $path = '/api/error';
+        $method = 'POST';
+        $exception = new RuntimeException('Test exception');
+
+        $this->uri->method('getPath')->willReturn($path);
+        $this->request->method('getMethod')->willReturn($method);
+
+        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler->expects($this->once())
+            ->method('handle')
+            ->willThrowException($exception);
+
+        $this->meter->method('createHistogram')->willReturn($this->histogram);
+
+        $this->histogram->expects($this->once())
+            ->method('record')
+            ->with(
+                $this->greaterThan(0),
+                [
+                    HttpAttributes::HTTP_ROUTE => $path,
+                    HttpAttributes::HTTP_REQUEST_METHOD => $method,
+                    ErrorAttributes::ERROR_TYPE => RuntimeException::class,
+                    HttpAttributes::HTTP_RESPONSE_STATUS_CODE => 500,
+                ]
+            );
+
+        $middleware = new MetricMiddleware(
+            $this->config,
+            $this->instrumentation,
+            $this->switcher
+        );
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Test exception');
+
+        $middleware->process($this->request, $handler);
     }
 
     private function configureRequestMock(string $method, string $path): void

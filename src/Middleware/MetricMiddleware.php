@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hyperf\OpenTelemetry\Middleware;
 
+use Hyperf\OpenTelemetry\Support\HttpStatusCode;
 use Hyperf\OpenTelemetry\Support\MetricBoundaries;
 use Hyperf\OpenTelemetry\Support\Uri;
 use OpenTelemetry\SemConv\Attributes\ErrorAttributes;
@@ -12,7 +13,6 @@ use OpenTelemetry\SemConv\Metrics\HttpMetrics;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Swoole\Http\Status;
 use Throwable;
 
 class MetricMiddleware extends AbstractMiddleware
@@ -45,8 +45,13 @@ class MetricMiddleware extends AbstractMiddleware
 
             return $response;
         } catch (Throwable $exception) {
-            $attributes[ErrorAttributes::ERROR_TYPE] = get_class($exception);
-            $attributes[HttpAttributes::HTTP_RESPONSE_STATUS_CODE] = $this->getHttpStatusCodeForException($exception);
+            $statusCode = $this->getHttpStatusCodeForException($exception);
+
+            if ($statusCode >= 500) {
+                $attributes[ErrorAttributes::ERROR_TYPE] = $exception::class;
+            }
+
+            $attributes[HttpAttributes::HTTP_RESPONSE_STATUS_CODE] = $statusCode;
 
             throw $exception;
         } finally {
@@ -70,9 +75,6 @@ class MetricMiddleware extends AbstractMiddleware
 
     protected function getHttpStatusCodeForException(Throwable $exception): int
     {
-        $exceptionCode = $exception->getCode();
-        $isHttpExceptionCode = is_int($exceptionCode) && Status::getReasonPhrase($exceptionCode) !== 'Unknown';
-
-        return $isHttpExceptionCode ? $exceptionCode : Status::INTERNAL_SERVER_ERROR;
+        return HttpStatusCode::fromExceptionOrCode($exception);
     }
 }
