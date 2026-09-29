@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Hyperf\OpenTelemetry\Middleware;
 
-use Hyperf\HttpMessage\Exception\HttpException;
+use Hyperf\OpenTelemetry\Support\HttpStatusCode;
 use Hyperf\OpenTelemetry\Support\Uri;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\SemConv\Attributes\ClientAttributes;
@@ -66,9 +66,11 @@ class TraceMiddleware extends AbstractMiddleware
 
             return $response;
         } catch (Throwable $exception) {
-            $scope->recordException($exception);
-
             $statusCode = $this->resolveStatusCode($exception);
+
+            if ($statusCode >= 500) {
+                $scope->recordException($exception);
+            }
 
             $scope->setAttributes([
                 HttpAttributes::HTTP_RESPONSE_STATUS_CODE => $statusCode,
@@ -82,7 +84,7 @@ class TraceMiddleware extends AbstractMiddleware
 
     protected function resolveStatusCode(Throwable $exception): int
     {
-        return $exception instanceof HttpException ? $exception->getStatusCode() : 500;
+        return HttpStatusCode::fromException($exception);
     }
 
     protected function featureName(): string

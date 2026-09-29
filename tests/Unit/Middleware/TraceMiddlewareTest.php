@@ -297,9 +297,8 @@ class TraceMiddlewareTest extends TestCase
             ->method('startSpan')
             ->willReturn($spanScope);
 
-        $spanScope->expects($this->once())
-            ->method('recordException')
-            ->with($exception);
+        $spanScope->expects($this->never())
+            ->method('recordException');
 
         $spanScope->expects($this->once())
             ->method('setAttributes')
@@ -318,6 +317,194 @@ class TraceMiddlewareTest extends TestCase
 
         $this->expectException(HttpException::class);
         $this->expectExceptionMessage('Not Found');
+
+        $middleware = new TraceMiddleware(
+            $this->config,
+            $this->instrumentation,
+            $this->switcher
+        );
+
+        $middleware->process($this->request, $handler);
+    }
+
+    public function testProcessWithHttpServerErrorStillRecordsException(): void
+    {
+        $this->configureRequestMock('POST', 'https://api.example.com:443/api/failure');
+
+        $exception = new HttpException(500, 'Server Error');
+
+        $spanScope = $this->createMock(SpanScope::class);
+        $this->instrumentation->expects($this->once())
+            ->method('startSpan')
+            ->willReturn($spanScope);
+
+        $spanScope->expects($this->once())
+            ->method('recordException')
+            ->with($exception);
+
+        $spanScope->expects($this->once())
+            ->method('setAttributes')
+            ->with([
+                HttpAttributes::HTTP_RESPONSE_STATUS_CODE => 500,
+            ]);
+
+        $spanScope->expects($this->once())
+            ->method('end');
+
+        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler->expects($this->once())
+            ->method('handle')
+            ->with($this->request)
+            ->willThrowException($exception);
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionMessage('Server Error');
+
+        $middleware = new TraceMiddleware(
+            $this->config,
+            $this->instrumentation,
+            $this->switcher
+        );
+
+        $middleware->process($this->request, $handler);
+    }
+
+    public function testProcessWithValidationStatusDoesNotRecordSpanError(): void
+    {
+        $this->configureRequestMock('POST', 'https://api.example.com:443/api/users');
+
+        $exception = new class('The given data was invalid.') extends RuntimeException {
+            public int $status = 422;
+        };
+
+        $spanScope = $this->createMock(SpanScope::class);
+        $this->instrumentation->expects($this->once())
+            ->method('startSpan')
+            ->willReturn($spanScope);
+
+        $spanScope->expects($this->never())
+            ->method('recordException');
+
+        $spanScope->expects($this->once())
+            ->method('setAttributes')
+            ->with([
+                HttpAttributes::HTTP_RESPONSE_STATUS_CODE => 422,
+            ]);
+
+        $spanScope->expects($this->once())
+            ->method('end');
+
+        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler->expects($this->once())
+            ->method('handle')
+            ->with($this->request)
+            ->willThrowException($exception);
+
+        $this->expectException($exception::class);
+        $this->expectExceptionMessage('The given data was invalid.');
+
+        $middleware = new TraceMiddleware(
+            $this->config,
+            $this->instrumentation,
+            $this->switcher
+        );
+
+        $middleware->process($this->request, $handler);
+    }
+
+    public function testProcessWithGetStatusCodeDoesNotRecordClientError(): void
+    {
+        $this->configureRequestMock('POST', 'https://api.example.com:443/api/users');
+
+        $exception = new class(409, 'Conflict') extends RuntimeException {
+            public function __construct(private readonly int $statusCode, string $message)
+            {
+                parent::__construct($message);
+            }
+
+            public function getStatusCode(): int
+            {
+                return $this->statusCode;
+            }
+        };
+
+        $spanScope = $this->createMock(SpanScope::class);
+        $this->instrumentation->expects($this->once())
+            ->method('startSpan')
+            ->willReturn($spanScope);
+
+        $spanScope->expects($this->never())
+            ->method('recordException');
+
+        $spanScope->expects($this->once())
+            ->method('setAttributes')
+            ->with([
+                HttpAttributes::HTTP_RESPONSE_STATUS_CODE => 409,
+            ]);
+
+        $spanScope->expects($this->once())
+            ->method('end');
+
+        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler->expects($this->once())
+            ->method('handle')
+            ->with($this->request)
+            ->willThrowException($exception);
+
+        $this->expectException($exception::class);
+        $this->expectExceptionMessage('Conflict');
+
+        $middleware = new TraceMiddleware(
+            $this->config,
+            $this->instrumentation,
+            $this->switcher
+        );
+
+        $middleware->process($this->request, $handler);
+    }
+
+    public function testProcessWithGetStatusCodeRecordsServerError(): void
+    {
+        $this->configureRequestMock('POST', 'https://api.example.com:443/api/users');
+
+        $exception = new class(503, 'Unavailable') extends RuntimeException {
+            public function __construct(private readonly int $statusCode, string $message)
+            {
+                parent::__construct($message);
+            }
+
+            public function getStatusCode(): int
+            {
+                return $this->statusCode;
+            }
+        };
+
+        $spanScope = $this->createMock(SpanScope::class);
+        $this->instrumentation->expects($this->once())
+            ->method('startSpan')
+            ->willReturn($spanScope);
+
+        $spanScope->expects($this->once())
+            ->method('recordException')
+            ->with($exception);
+
+        $spanScope->expects($this->once())
+            ->method('setAttributes')
+            ->with([
+                HttpAttributes::HTTP_RESPONSE_STATUS_CODE => 503,
+            ]);
+
+        $spanScope->expects($this->once())
+            ->method('end');
+
+        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler->expects($this->once())
+            ->method('handle')
+            ->with($this->request)
+            ->willThrowException($exception);
+
+        $this->expectException($exception::class);
+        $this->expectExceptionMessage('Unavailable');
 
         $middleware = new TraceMiddleware(
             $this->config,
