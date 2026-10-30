@@ -51,6 +51,7 @@ class TraceMiddleware extends AbstractMiddleware
                 ServerAttributes::SERVER_PORT => $request->getUri()->getPort(),
                 UserAgentAttributes::USER_AGENT_ORIGINAL => $request->getHeaderLine('User-Agent'),
                 ClientAttributes::CLIENT_ADDRESS => $this->getRequestIP($request),
+                ...$this->transformHeaders('request', $request->getHeaders()),
             ],
             explicitContext: $context
         );

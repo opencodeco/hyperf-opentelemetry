@@ -7,6 +7,7 @@ namespace Tests\Unit\Factory\Trace\Exporter;
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\OpenTelemetry\Factory\Trace\Exporter\OtlpHttpTraceExporterFactory;
 use Hyperf\OpenTelemetry\Support\OtlpHttpTransportBuilder;
+use OpenTelemetry\SDK\Common\Export\TransportInterface;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use PHPUnit\Framework\TestCase;
 use Tests\Unit\Factory\Exporter\OtlpHttpClientAssertions;
@@ -36,6 +37,42 @@ class OtlpHttpTraceExporterFactoryTest extends TestCase
 
         $factory = new OtlpHttpTraceExporterFactory($config);
         $exporter = $factory->make();
+
+        $this->assertInstanceOf(SpanExporterInterface::class, $exporter);
+    }
+
+    public function testMakeReadsNestedRetryOptionsFromConfig(): void
+    {
+        $options = [
+            'endpoint' => 'http://localhost:4318/v1/traces',
+            'content_type' => 'application/x-protobuf',
+            'compression' => 'gzip',
+            'headers' => [],
+            'timeout' => 3.0,
+            'retry' => [
+                'delay_ms' => 250,
+                'max_retries' => 4,
+            ],
+        ];
+
+        $transport = $this->createMock(TransportInterface::class);
+        $transport->method('contentType')->willReturn('application/x-protobuf');
+
+        $builder = $this->createMock(OtlpHttpTransportBuilder::class);
+        $builder->expects($this->once())
+            ->method('create')
+            ->with(
+                'http://localhost:4318/v1/traces',
+                'application/x-protobuf',
+                [],
+                'gzip',
+                3.0,
+                250,
+                4,
+            )
+            ->willReturn($transport);
+
+        $exporter = $this->factory($options, $builder)->make();
 
         $this->assertInstanceOf(SpanExporterInterface::class, $exporter);
     }

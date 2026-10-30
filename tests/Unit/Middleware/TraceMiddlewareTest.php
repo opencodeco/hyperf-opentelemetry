@@ -73,6 +73,7 @@ class TraceMiddlewareTest extends TestCase
         $this->config->method('get')
             ->willReturnMap([
                 ['open-telemetry.instrumentation.features.client_request.options.ignore_paths', [], []],
+                ['open-telemetry.instrumentation.features.client_request.options.headers.request', ['*'], ['user-agent', 'x-forwarded-for']],
                 ['open-telemetry.instrumentation.features.client_request.options.headers.response', ['*'], ['*']],
                 ['open-telemetry.traces.uri_mask', [], ['/P2P[0-9A-Za-z]+/' => '{identifier}']],
                 ['open-telemetry.metrics.uri_mask', [], ['/P2P[0-9A-Za-z]+/' => '{identifier}']],
@@ -153,6 +154,8 @@ class TraceMiddlewareTest extends TestCase
                     ServerAttributes::SERVER_PORT => 443,
                     UserAgentAttributes::USER_AGENT_ORIGINAL => 'TestAgent/1.0',
                     ClientAttributes::CLIENT_ADDRESS => '192.168.1.100',
+                    'http.request.header.user-agent' => 'TestAgent/1.0',
+                    'http.request.header.x-forwarded-for' => '192.168.1.100',
                 ],
                 $this->isType('int'),
                 $context
@@ -216,6 +219,8 @@ class TraceMiddlewareTest extends TestCase
                     ServerAttributes::SERVER_PORT => 443,
                     UserAgentAttributes::USER_AGENT_ORIGINAL => 'TestAgent/1.0',
                     ClientAttributes::CLIENT_ADDRESS => '192.168.1.100',
+                    'http.request.header.user-agent' => 'TestAgent/1.0',
+                    'http.request.header.x-forwarded-for' => '192.168.1.100',
                 ],
                 $this->isType('int'),
                 $context

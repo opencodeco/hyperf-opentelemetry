@@ -84,6 +84,7 @@ class GuzzleClientAspectTest extends TestCase
             ->willReturnMap([
                 ['open-telemetry.traces.exporters.otlp_http.options.endpoint', 'localhost', 'http://collector:4318'],
                 ['open-telemetry.metrics.exporters.otlp_http.options.endpoint', 'localhost', 'http://collector:4318'],
+                ['open-telemetry.logs.exporters.otlp_http.options.endpoint', 'localhost', 'http://logs-collector:4318'],
                 ['open-telemetry.instrumentation.features.guzzle.options.headers.request', ['*'], ['*']],
                 ['open-telemetry.instrumentation.features.guzzle.options.headers.response', ['*'], ['*']],
                 ['open-telemetry.traces.uri_mask', [], ['/P2P[0-9A-Za-z]+/' => '{identifier}']],
@@ -115,6 +116,22 @@ class GuzzleClientAspectTest extends TestCase
     public function testProcessSkipsExporterHosts(): void
     {
         $this->uri->method('getHost')->willReturn('collector');
+
+        $aspect = new GuzzleClientAspect(
+            $this->config,
+            $this->instrumentation,
+            $this->switcher
+        );
+
+        $this->instrumentation->expects($this->never())->method('startSpan');
+        $this->meter->expects($this->never())->method('createHistogram');
+
+        $this->assertEquals($this->promise, $aspect->process($this->proceedingJoinPoint));
+    }
+
+    public function testProcessSkipsLogExporterHost(): void
+    {
+        $this->uri->method('getHost')->willReturn('logs-collector');
 
         $aspect = new GuzzleClientAspect(
             $this->config,

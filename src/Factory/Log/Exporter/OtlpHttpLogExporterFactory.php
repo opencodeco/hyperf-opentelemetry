@@ -29,8 +29,8 @@ class OtlpHttpLogExporterFactory implements LogExporterFactoryInterface
                 headers: $options['headers'] ?? [],
                 compression: $options['compression'] ?? TransportFactoryInterface::COMPRESSION_GZIP,
                 timeout: $options['timeout'] ?? 10,
-                retryDelay: $options['retry_delay'] ?? 100,
-                maxRetries: $options['max_retries'] ?? 3,
+                retryDelay: $options['retry']['delay_ms'] ?? $options['retry_delay'] ?? 100,
+                maxRetries: $options['retry']['max_retries'] ?? $options['max_retries'] ?? 3,
             )
         );
     }

@@ -7,6 +7,7 @@ namespace Tests\Unit\Factory\Log\Exporter;
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\OpenTelemetry\Factory\Log\Exporter\OtlpHttpLogExporterFactory;
 use Hyperf\OpenTelemetry\Support\OtlpHttpTransportBuilder;
+use OpenTelemetry\SDK\Common\Export\TransportInterface;
 use OpenTelemetry\SDK\Logs\LogRecordExporterInterface;
 use PHPUnit\Framework\TestCase;
 use Tests\Unit\Factory\Exporter\OtlpHttpClientAssertions;
@@ -33,6 +34,42 @@ class OtlpHttpLogExporterFactoryTest extends TestCase
 
         $factory = new OtlpHttpLogExporterFactory($config);
         $exporter = $factory->make();
+
+        $this->assertInstanceOf(LogRecordExporterInterface::class, $exporter);
+    }
+
+    public function testMakeReadsNestedRetryOptionsFromConfig(): void
+    {
+        $options = [
+            'endpoint' => 'http://localhost:4318/v1/logs',
+            'content_type' => 'application/x-protobuf',
+            'compression' => 'gzip',
+            'headers' => [],
+            'timeout' => 3.0,
+            'retry' => [
+                'delay_ms' => 250,
+                'max_retries' => 4,
+            ],
+        ];
+
+        $transport = $this->createMock(TransportInterface::class);
+        $transport->method('contentType')->willReturn('application/x-protobuf');
+
+        $builder = $this->createMock(OtlpHttpTransportBuilder::class);
+        $builder->expects($this->once())
+            ->method('create')
+            ->with(
+                'http://localhost:4318/v1/logs',
+                'application/x-protobuf',
+                [],
+                'gzip',
+                3.0,
+                250,
+                4,
+            )
+            ->willReturn($transport);
+
+        $exporter = $this->factory($options, $builder)->make();
 
         $this->assertInstanceOf(LogRecordExporterInterface::class, $exporter);
     }

@@ -18,7 +18,7 @@ class ChannelBatchSpanProcessorFactory implements TraceProcessorFactoryInterface
 
     public function make(SpanExporterInterface $exporter): SpanProcessorInterface
     {
-        $options = $this->config->get('open-telemetry.traces.processors.channel_batch.options', []);
+        $options = $this->config->get('open-telemetry.traces.processors.channel.options', []);
 
         return new ChannelBatchSpanProcessor(
             exporter: $exporter,

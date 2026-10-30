@@ -58,6 +58,10 @@ class GuzzleClientAspect extends AbstractAspect
                 $this->config->get('open-telemetry.metrics.exporters.otlp_http.options.endpoint', 'localhost'),
                 PHP_URL_HOST
             ),
+            parse_url(
+                $this->config->get('open-telemetry.logs.exporters.otlp_http.options.endpoint', 'localhost'),
+                PHP_URL_HOST
+            ),
         ];
 
         if (in_array($request->getUri()->getHost(), $exporterHosts, true)) {

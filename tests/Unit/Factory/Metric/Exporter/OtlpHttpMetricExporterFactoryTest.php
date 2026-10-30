@@ -7,6 +7,7 @@ namespace Tests\Unit\Factory\Metric\Exporter;
 use Hyperf\Contract\ConfigInterface;
 use Hyperf\OpenTelemetry\Factory\Metric\Exporter\OtlpHttpMetricExporterFactory;
 use Hyperf\OpenTelemetry\Support\OtlpHttpTransportBuilder;
+use OpenTelemetry\SDK\Common\Export\TransportInterface;
 use OpenTelemetry\SDK\Metrics\Data\Temporality;
 use OpenTelemetry\SDK\Metrics\MetricExporterInterface;
 use PHPUnit\Framework\TestCase;
@@ -38,6 +39,43 @@ class OtlpHttpMetricExporterFactoryTest extends TestCase
 
         $factory = new OtlpHttpMetricExporterFactory($config);
         $exporter = $factory->make();
+
+        $this->assertInstanceOf(MetricExporterInterface::class, $exporter);
+    }
+
+    public function testMakeReadsNestedRetryOptionsFromConfig(): void
+    {
+        $options = [
+            'endpoint' => 'http://localhost:4318/v1/metrics',
+            'content_type' => 'application/x-protobuf',
+            'compression' => 'gzip',
+            'headers' => [],
+            'timeout' => 3.0,
+            'retry' => [
+                'delay_ms' => 250,
+                'max_retries' => 4,
+            ],
+            'temporality' => Temporality::DELTA,
+        ];
+
+        $transport = $this->createMock(TransportInterface::class);
+        $transport->method('contentType')->willReturn('application/x-protobuf');
+
+        $builder = $this->createMock(OtlpHttpTransportBuilder::class);
+        $builder->expects($this->once())
+            ->method('create')
+            ->with(
+                'http://localhost:4318/v1/metrics',
+                'application/x-protobuf',
+                [],
+                'gzip',
+                3.0,
+                250,
+                4,
+            )
+            ->willReturn($transport);
+
+        $exporter = $this->factory($options, $builder)->make();
 
         $this->assertInstanceOf(MetricExporterInterface::class, $exporter);
     }
